@@ -1,7 +1,7 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <id>com.github.shaunhurryup.easycoderjetbrainsplugin</id>
-    <name>easy-coder-jetbrains-plugin</name>
+    <name>Easy-Coder</name>
     <vendor>shaunhurryup</vendor>
 
     <depends>com.intellij.modules.platform</depends>
@@ -15,4 +15,11 @@
     <applicationListeners>
         <listener class="com.github.shaunhurryup.easycoderjetbrainsplugin.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
     </applicationListeners>
+
+    <actions>
+        <action id="MyPlugin.OpenPage" class="com.github.shaunhurryup.easycoderjetbrainsplugin.actions.OpenPageAction" text="Open Page" description="Opens a custom page">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+    </actions>
+
 </idea-plugin>
