@@ -5,6 +5,7 @@ import com.easycoder.intellij.handlers.CustomSchemeHandlerFactory;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderUtils;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -21,6 +22,10 @@ import org.cef.handler.CefLoadHandler;
 import org.cef.network.CefRequest;
 
 import javax.swing.*;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Objects;
 
 public class EasyCoderSideWindow {
@@ -77,11 +82,34 @@ public class EasyCoderSideWindow {
         return this.jbCefBrowser;
     }
 
+    private String mockHttpGet() {
+        try {
+            // 创建 HttpClient 对象
+            HttpClient client = HttpClient.newHttpClient();
+
+            // 创建 HttpRequest 对象
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI("https://jsonplaceholder.typicode.com/todos/1"))
+                .GET()
+                .build();
+
+            // 发送请求并获取响应
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            return response.body();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private void registerJsCallJavaHandler(JBCefBrowser browser) {
         JBCefJSQuery query = JBCefJSQuery.create((JBCefBrowserBase) browser);
         query.addHandler((String arg) -> {
             try {
-                return new JBCefJSQuery.Response("123");
+                Object request = new Gson().fromJson(arg, Object.class);
+                String mockHttpGetResponse = mockHttpGet();
+                return new JBCefJSQuery.Response(mockHttpGetResponse);
             } catch (Exception e) {
                 logger.warn("JBCefJSQuery error", e);
                 return new JBCefJSQuery.Response(null, 0, "errorMsg");
@@ -102,10 +130,10 @@ public class EasyCoderSideWindow {
             public void onLoadEnd(CefBrowser browser, CefFrame frame, int httpStatusCode) {
 
                 JsonObject jsonObject = new JsonObject();
-                if(EasyCoderSettings.getInstance().isCPURadioButtonEnabled()){
+                if (EasyCoderSettings.getInstance().isCPURadioButtonEnabled()) {
                     jsonObject.addProperty("sendUrl", EasyCoderSettings.getInstance().getServerAddressURL() + EasyCoderURI.CPU_CHAT.getUri());
                     jsonObject.addProperty("modelType", "CPU");
-                }else{
+                } else {
                     jsonObject.addProperty("sendUrl", EasyCoderSettings.getInstance().getServerAddressURL() + EasyCoderURI.GPU_CHAT.getUri());
                     jsonObject.addProperty("modelType", "GPU");
                 }
@@ -115,14 +143,17 @@ public class EasyCoderSideWindow {
                 (project.getService(EasyCoderSideWindowService.class)).notifyIdeAppInstance(result);
 
                 browser.executeJavaScript(
-                        "window.callJava = function(arg) {" +
-                                query.inject(
-                                        "arg",
-                                        "response => console.log(response)",
-                                        "(error_code, error_message) => console.log('callJava 失败', error_code, error_message)"
-                                ) +
-                                "};",
-                        null, 0);
+                    // Webview => JBCef
+                    // arg 如果是对象需要序列化
+                    "window.callJava = function(arg) {" +
+                        query.inject(
+                            "arg",
+                            // JBCef => Webview
+                            "response => console.log('response: ', response)",
+                            "(error_code, error_message) => console.log('callJava 失败', error_code, error_message)"
+                        ) +
+                        "};",
+                    null, 0);
             }
 
             @Override
