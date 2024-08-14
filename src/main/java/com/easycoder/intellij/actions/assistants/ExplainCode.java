@@ -61,28 +61,39 @@ public class ExplainCode extends DumbAwareAction implements IntentionAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getData(LangDataKeys.PROJECT);
-        if (Objects.isNull(project)) {
-            return;
-        }
+//        if (Objects.isNull(project)) {
+//            return;
+//        }
         ApplicationManager.getApplication().invokeLater(() -> {
-            VirtualFile vf = e.getRequiredData(CommonDataKeys.VIRTUAL_FILE);
-            Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-            if (EditorUtils.isNoneTextSelected(editor)) {
-                return;
-            }
-            PsiFile psiFile = e.getRequiredData(CommonDataKeys.PSI_FILE);
-            JsonObject jsonObject = EditorUtils.getFileSelectionDetails(editor, psiFile, true, PrefixString.EXPLAIN_CODE);
+//            VirtualFile vf = e.getRequiredData(CommonDataKeys.VIRTUAL_FILE);
+//            Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
+//            if (EditorUtils.isNoneTextSelected(editor)) {
+//                return;
+//            }
+//            PsiFile psiFile = e.getRequiredData(CommonDataKeys.PSI_FILE);
+//            JsonObject jsonObject = EditorUtils.getFileSelectionDetails(editor, psiFile, true, PrefixString.EXPLAIN_CODE);
+//
+//            // 手动处理需要转义的字段
+//            String selectedText = jsonObject.get("sendText").getAsString();
+//            selectedText = selectedText
+//                    .replace("\\", "\\\\")   // 转义反斜杠
+//                    .replace("\"", "\\\"")   // 转义双引号
+//                    .replace("\n", "\\n")    // 转义换行符
+//                    .replace("\r", "\\r");   // 转义回车符
+//
+//            jsonObject.addProperty("selectedText", selectedText);
+
             JsonObject result = new JsonObject();
-            ToolWindowManager tool = ToolWindowManager.getInstance(project);
-            Objects.requireNonNull(tool.getToolWindow("EasyCoder")).activate(()-> {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("******************* ExplainCode Enabled EasyCoder window *******************");
-                }
-            } , true, true);
-            jsonObject.addProperty("fileName", vf.getName());
-            jsonObject.addProperty("filePath", vf.getCanonicalPath());
-            result.addProperty("data", jsonObject.toString());
-            (project.getService(EasyCoderSideWindowService.class)).notifyIdeAppInstance(result);
+//            ToolWindowManager tool = ToolWindowManager.getInstance(project);
+//            Objects.requireNonNull(tool.getToolWindow("EasyCoder")).activate(() -> {
+//                if (logger.isDebugEnabled()) {
+//                    logger.debug("******************* ExplainCode Enabled EasyCoder window *******************");
+//                }
+//            }, true, true);
+//            jsonObject.addProperty("fileName", vf.getName());
+//            jsonObject.addProperty("filePath", vf.getCanonicalPath());
+            result.addProperty("id", "test");
+            project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(result);
         }, ModalityState.NON_MODAL);
     }
 }

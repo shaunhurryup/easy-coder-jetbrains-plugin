@@ -89,9 +89,9 @@ public class EasyCoderSideWindow {
 
             // 创建 HttpRequest 对象
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("https://jsonplaceholder.typicode.com/todos/1"))
-                .GET()
-                .build();
+                    .uri(new URI("https://jsonplaceholder.typicode.com/todos/1"))
+                    .GET()
+                    .build();
 
             // 发送请求并获取响应
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -118,17 +118,27 @@ public class EasyCoderSideWindow {
         browser.getJBCefClient().addLoadHandler(new CefLoadHandler() {
             @Override
             public void onLoadingStateChange(CefBrowser browser, boolean isLoading, boolean canGoBack, boolean canGoForward) {
-
             }
 
             @Override
             public void onLoadStart(CefBrowser browser, CefFrame frame, CefRequest.TransitionType transitionType) {
-
+                browser.executeJavaScript(
+                        // Webview => JBCef
+                        // arg 如果是对象需要序列化
+                        "window.callJava = function(arg) {" +
+                                query.inject(
+                                        "arg",
+                                        // onSuccess
+                                        "response => console.log('response: ', response)",
+                                        // onError
+                                        "(error_code, error_message) => console.log('callJava 失败', error_code, error_message)"
+                                ) +
+                                "};",
+                        null, 0);
             }
 
             @Override
             public void onLoadEnd(CefBrowser browser, CefFrame frame, int httpStatusCode) {
-
                 JsonObject jsonObject = new JsonObject();
                 if (EasyCoderSettings.getInstance().isCPURadioButtonEnabled()) {
                     jsonObject.addProperty("sendUrl", EasyCoderSettings.getInstance().getServerAddressURL() + EasyCoderURI.CPU_CHAT.getUri());
@@ -141,19 +151,6 @@ public class EasyCoderSideWindow {
                 JsonObject result = new JsonObject();
                 result.addProperty("data", jsonObject.toString());
                 (project.getService(EasyCoderSideWindowService.class)).notifyIdeAppInstance(result);
-
-                browser.executeJavaScript(
-                    // Webview => JBCef
-                    // arg 如果是对象需要序列化
-                    "window.callJava = function(arg) {" +
-                        query.inject(
-                            "arg",
-                            // JBCef => Webview
-                            "response => console.log('response: ', response)",
-                            "(error_code, error_message) => console.log('callJava 失败', error_code, error_message)"
-                        ) +
-                        "};",
-                    null, 0);
             }
 
             @Override

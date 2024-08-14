@@ -1,24 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>test</title>
-	<script>
-		const vscodeApi = {
-			postMessage: () => {}
-		}
-		// 重写 webview 日志，减少性能损失
-		// window.console.log = () => {}
-		// window.console.warn = () => {}
-		// window.console.error = () => {}
-	</script>
-<script defer src="sidebar.bundle.js"></script></head>
-
-<body>
-<div id="root" style="height: 100%;"></div>
-</body>
-
-
-</html>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>test</title><script defer="defer" src="sidebar.bundle.js"></script></head><body><div id="root" style="height: 100%;"></div></body><script>// 重写 webview 日志，减少性能损失
+    // window.console.log = () => {}
+    // window.console.warn = () => {}
+    // window.console.error = () => {}</script></html>
