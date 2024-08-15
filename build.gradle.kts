@@ -13,6 +13,8 @@ repositories {
 dependencies {
     implementation("cn.hutool:hutool-all:5.8.22")
     implementation("com.alibaba.fastjson2:fastjson2:2.0.41")
+    implementation("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30") // 添加注解处理器
 }
 
 intellij {

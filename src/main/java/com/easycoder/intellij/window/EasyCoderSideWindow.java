@@ -1,12 +1,17 @@
 package com.easycoder.intellij.window;
 
 import com.easycoder.intellij.enums.EasyCoderURI;
+import com.easycoder.intellij.enums.MessageId;
 import com.easycoder.intellij.handlers.CustomSchemeHandlerFactory;
+import com.easycoder.intellij.handlers.WebviewMessageFactory;
+import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderUtils;
+import com.github.markusbernhardt.proxy.util.PlatformUtil.Desktop;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -14,6 +19,8 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.jcef.JBCefBrowser;
 import com.intellij.ui.jcef.JBCefBrowserBase;
 import com.intellij.ui.jcef.JBCefJSQuery;
+import com.intellij.util.messages.MessageHandler;
+
 import org.cef.CefApp;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
@@ -104,10 +111,17 @@ public class EasyCoderSideWindow {
     }
 
     private void registerJsCallJavaHandler(JBCefBrowser browser) {
+        // Jetbrains Chrome Extension Framework
         JBCefJSQuery query = JBCefJSQuery.create((JBCefBrowserBase) browser);
         query.addHandler((String arg) -> {
             try {
-                Object request = new Gson().fromJson(arg, Object.class);
+                // webview -> extension
+                WebviewMessage webviewMessage = new Gson().fromJson(arg, WebviewMessage.class);
+                
+                // 使用命令模式处理不同的消息ID
+                WebviewMessageFactory.handle(webviewMessage);
+
+                // extension -> webview
                 String mockHttpGetResponse = mockHttpGet();
                 return new JBCefJSQuery.Response(mockHttpGetResponse);
             } catch (Exception e) {

@@ -13,6 +13,7 @@ import com.intellij.openapi.editor.event.*;
 import com.intellij.openapi.editor.impl.EditorComponentImpl;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.NlsContexts;
@@ -21,6 +22,7 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.StatusBarWidget;
 import com.intellij.openapi.wm.impl.status.EditorBasedWidget;
+import com.intellij.openapi.wm.impl.status.TextPanel;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -43,8 +46,25 @@ public class EasyCoderWidget extends EditorBasedWidget
     public static final Key<String[]> SHELL_CODER_CODE_SUGGESTION = new Key<>("EasyCoder Code Suggestion");
     public static final Key<Integer> SHELL_CODER_POSITION = new Key<>("EasyCoder Position");
     public static boolean enableSuggestion = false;
+    private final ComboBox<String> comboBox;
+    private final TextPanel.WithIconAndArrows panel = new TextPanel.WithIconAndArrows();
+
+
+
     protected EasyCoderWidget(@NotNull Project project) {
         super(project);
+        comboBox = new ComboBox<>(new String[]{"Option 1", "Option 2", "Option 3"});
+        comboBox.setEditable(false);
+
+        panel.setText("Select Option");
+        panel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                // 在单击状态栏时显示选择框
+                JComboBox<String> dropdown = comboBox;
+                JOptionPane.showMessageDialog(null, dropdown, "Select Option", JOptionPane.PLAIN_MESSAGE);
+            }
+        });
     }
 
     @Override
