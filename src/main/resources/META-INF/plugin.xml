@@ -43,6 +43,8 @@
         <statusBarWidgetFactory id="EasyCoderFactory"
                                 implementation="com.easycoder.intellij.widget.EasyCoderWidgetFactory"
                                 order="after positionWidget"/>
+        <statusBarWidgetFactory order="first" id="StatusPopupFactory" implementation="com.easycoder.intellij.widget.StatusPopupFactory"/>
+
         <editorActionHandler action="EditorTab" implementationClass="com.easycoder.intellij.actions.complete.CodeGenTabAction"/>
         <editorActionHandler action="EditorEscape" implementationClass="com.easycoder.intellij.actions.complete.CodeGenEscAction"/>
         <notificationGroup id="EasyCoder" displayType="STICKY_BALLOON" isLogByDefault="true"/>
