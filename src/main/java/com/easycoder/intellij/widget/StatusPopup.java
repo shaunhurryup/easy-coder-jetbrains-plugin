@@ -1,6 +1,10 @@
 package com.easycoder.intellij.widget;
 
 import com.easycoder.intellij.constant.Const;
+import com.easycoder.intellij.enums.MessageId;
+import com.easycoder.intellij.http.HttpToolkits;
+import com.easycoder.intellij.services.EasyCoderSideWindowService;
+import com.google.gson.JsonObject;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -12,16 +16,22 @@ import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.StatusBarWidget;
 import com.intellij.openapi.wm.impl.status.EditorBasedStatusBarPopup;
+import org.apache.commons.httpclient.HttpURL;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class StatusPopup extends EditorBasedStatusBarPopup {
+    Project project;
 
     public StatusPopup(@NotNull Project project) {
         super(project, false);
+        this.project = project;
     }
 
     @NotNull
@@ -40,9 +50,10 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
             public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
                 if (Const.LOGIN_IN.equals(selectedValue)) {
                     PropertiesComponent.getInstance().setValue("easycoder.is-login", true);
-//                    openWebpage();
+                    openWebpage();
                 } else if (Const.LOGIN_OUT.equals(selectedValue)) {
                     PropertiesComponent.getInstance().setValue("easycoder.is-login", false);
+                    clearToken();
                 }
                 update();  // Refresh the status bar widget to reflect the new state
                 return FINAL_CHOICE;
@@ -53,7 +64,35 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
     }
 
     private void openWebpage() {
-        BrowserUtil.browse(Const.WEBSITE);
+        String uuid = UUID.randomUUID().toString();
+        String targetUrl = Const.WEBSITE + "?sessionId=" + uuid;
+        BrowserUtil.browse(targetUrl);
+        CompletableFuture<Map<String, String>> future = HttpToolkits.fetchToken(uuid);
+        future.thenAccept(map -> {
+            if (map != null) {
+                JsonObject message = new JsonObject();
+                message.addProperty("id", MessageId.SuccessfulAuth.name());
+                JsonObject payload = new JsonObject();
+                payload.addProperty("account", map.get("username"));
+                payload.addProperty("accessToken", map.get("token"));
+                message.add("payload", payload);
+                project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(message);
+
+                PropertiesComponent.getInstance().setValue("easycoder:token", map.get("token"));
+                PropertiesComponent.getInstance().setValue("easycoder:username", map.get("username"));
+                PropertiesComponent.getInstance().setValue("easycoder:userId", map.get("userId"));
+            }
+        });
+    }
+
+    private void clearToken() {
+        PropertiesComponent.getInstance().unsetValue("easycoder:token");
+        PropertiesComponent.getInstance().unsetValue("easycoder:username");
+        PropertiesComponent.getInstance().unsetValue("easycoder:userId");
+
+        JsonObject message = new JsonObject();
+        message.addProperty("id", MessageId.SignOutExtension.name());
+        project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(message);
     }
 
     @Override

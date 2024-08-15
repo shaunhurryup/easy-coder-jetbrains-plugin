@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.codeInspection.util.IntentionName;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -60,6 +61,8 @@ public class ExplainCode extends DumbAwareAction implements IntentionAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
+        System.out.println(PropertiesComponent.getInstance().getValue("easycoder:token"));
+
         Project project = e.getData(LangDataKeys.PROJECT);
 //        if (Objects.isNull(project)) {
 //            return;
