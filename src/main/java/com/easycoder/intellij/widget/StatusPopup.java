@@ -42,7 +42,7 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
 
     @Override
     protected @Nullable ListPopup createPopup(DataContext dataContext) {
-        boolean isLoginIn = "true".equals(PropertiesComponent.getInstance().getValue("easycoder.is-login"));
+        boolean isLoginIn = PropertiesComponent.getInstance().getValue("easycoder:token") != null;
         String firstOption = isLoginIn ? Const.LOGIN_OUT : Const.LOGIN_IN;
 
         BaseListPopupStep<String> firstStep = new BaseListPopupStep<>("EasyCoder Status", Arrays.asList(firstOption)) {
