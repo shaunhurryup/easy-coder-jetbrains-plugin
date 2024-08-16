@@ -49,10 +49,8 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
             @Override
             public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
                 if (Const.LOGIN_IN.equals(selectedValue)) {
-                    PropertiesComponent.getInstance().setValue("easycoder.is-login", true);
                     openWebpage();
                 } else if (Const.LOGIN_OUT.equals(selectedValue)) {
-                    PropertiesComponent.getInstance().setValue("easycoder.is-login", false);
                     HttpToolkits.signOut(project);
                 }
                 update();  // Refresh the status bar widget to reflect the new state
