@@ -3,13 +3,17 @@ package com.easycoder.intellij.http;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import com.easycoder.intellij.enums.MessageId;
+import com.easycoder.intellij.enums.MessageType;
+import com.easycoder.intellij.enums.ServiceRoute;
 import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -20,10 +24,83 @@ import java.util.concurrent.CompletableFuture;
 import static com.easycoder.intellij.constant.HttpRequest.baseURL;
 
 public class HttpToolkits {
-    static public String doHttpGet(WebviewMessage message) {
-        String route = (String) message.getPayload().get("route");
+    public static void createEventSource(WebviewMessage message, Project project) {
+        String route = message.getPayload().get("route").getAsString();
+        Object body = message.getPayload().get("body");
+        String method = "POST";
 
         String token = PropertiesComponent.getInstance().getValue("easycoder:token");
+        String url = baseURL + route;
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("token", token);
+
+        if ("POST".equalsIgnoreCase(method)) {
+            requestBuilder.POST(HttpRequest.BodyPublishers.ofString(new Gson().toJson(body)))
+                .header("Content-Type", "application/json");
+        } else {
+            requestBuilder.GET();
+        }
+
+        HttpRequest request = requestBuilder.build();
+
+        try {
+            notifyWebview(project, message.getId(), MessageType.HandleEventSourceStart, new JsonObject());
+
+            HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            String sessionId = response.headers().firstValue("sessionid").orElse("");
+            String recordId = response.headers().firstValue("recordid").orElse("");
+
+            if ((route.equals(ServiceRoute.SEND_QUESTION.getRoute()) || route.equals(ServiceRoute.RE_GENERATE.getRoute())) && (sessionId.isEmpty() || recordId.isEmpty())) {
+                throw new RuntimeException("Empty session-id or record-id");
+            }
+
+            InputStream inputStream = response.body();
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            // StringBuilder dataBuilder = new StringBuilder();
+
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                String chunk = new String(buffer, 0, bytesRead);
+                // dataBuilder.append(chunk);
+
+                JsonObject payload = new JsonObject();
+                payload.addProperty("data", chunk);
+                payload.addProperty("recordId", recordId);
+                payload.addProperty("sessionId", sessionId);
+                notifyWebview(project, message.getId(), MessageType.HandleEventSourceMessage, payload);
+            }
+
+            notifyWebview(project, message.getId(), MessageType.HandleEventSourceSuccess, new JsonObject());
+        } catch (Exception e) {
+            JsonObject errorPayload = new JsonObject();
+            errorPayload.addProperty("error", e.getMessage());
+            notifyWebview(project, message.getId(), MessageType.HandleEventSourceError, errorPayload);
+        }
+
+        notifyWebview(project, message.getId(), MessageType.HandleEventSourceAbort, new JsonObject());
+    }
+
+    private static void notifyWebview(Project project, MessageId messageId, MessageType type, JsonObject payload) {
+        WebviewMessage responseMessage = WebviewMessage.builder()
+            .id(messageId)
+            .type(type)
+            .payload(payload)
+            .build();
+        project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new com.google.gson.Gson().toJson(responseMessage));
+    }
+
+
+    static public String doHttpGet(WebviewMessage message) {
+        String route = message.getPayload().get("route").getAsString();
+
+        String token = PropertiesComponent.getInstance().getValue("easycoder:token");
+
+        if (token == null) {
+            return null;
+        }
 
         HttpClient client = HttpClient.newHttpClient();
 

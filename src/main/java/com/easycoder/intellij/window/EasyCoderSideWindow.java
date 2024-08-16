@@ -88,10 +88,7 @@ public class EasyCoderSideWindow {
         query.addHandler((String arg) -> {
             try {
                 WebviewMessage requestMessage = new Gson().fromJson(arg, WebviewMessage.class);
-                WebviewMessage responseMessage = WebviewMessageHandler.run(requestMessage);
-                if (responseMessage != null) {
-                    project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new Gson().toJson(responseMessage));
-                }
+                WebviewMessageHandler.run(requestMessage, project);
                 // todo: 发送到 webview 的消息用不到
                 // extension -> webview
                 return null;
