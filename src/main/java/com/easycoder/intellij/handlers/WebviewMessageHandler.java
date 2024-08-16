@@ -62,6 +62,20 @@ public class WebviewMessageHandler {
                 .build();
         }
 
+        if (messageId.equals(MessageId.WebviewMount)) {
+            String token = PropertiesComponent.getInstance().getValue("easycoder:token");
+            String username = PropertiesComponent.getInstance().getValue("easycoder:username");
+            HashMap<String, Object> payload = new HashMap<>();
+            payload.put("account", username);
+            payload.put("accessToken", token);
+
+            return WebviewMessage.builder()
+                .id(MessageId.SuccessfulAuth)
+                .payload(payload)
+                .build();
+
+        }
+
         return null;
     }
 }
