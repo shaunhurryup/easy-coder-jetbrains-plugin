@@ -89,7 +89,7 @@ public class EasyCoderSideWindow {
             try {
                 WebviewMessage requestMessage = new Gson().fromJson(arg, WebviewMessage.class);
                 WebviewMessage responseMessage = WebviewMessageHandler.run(requestMessage);
-                if (requestMessage.getId().equals(MessageId.OpenSignInWebpage)) {
+                if (responseMessage != null) {
                     project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new Gson().toJson(responseMessage));
                 }
                 // todo: 发送到 webview 的消息用不到

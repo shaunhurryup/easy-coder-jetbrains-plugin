@@ -3,15 +3,51 @@ package com.easycoder.intellij.http;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
 import com.easycoder.intellij.enums.MessageId;
+import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.google.gson.JsonObject;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.Project;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import static com.easycoder.intellij.constant.HttpRequest.baseURL;
+
 public class HttpToolkits {
+    static public String doHttpGet(WebviewMessage message) {
+        String route = (String) message.getPayload().get("route");
+
+        String token = PropertiesComponent.getInstance().getValue("easycoder:token");
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+            .uri(URI.create(baseURL + route))
+            .GET();
+
+        // 添加 headers
+        requestBuilder.header("token", token);
+
+        HttpRequest request = requestBuilder.build();
+
+        System.out.println("[EasyCoder] -- HttpUtil.doHttpGet -- url: " + baseURL + route);
+
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println("[EasyCoder] -- HttpUtil.doHttpGet -- response: " + response.body());
+            return response.body();
+        } catch (IOException | InterruptedException e) {
+            System.err.println("[Request Failed] -- " + e.getMessage());
+            return null;
+        }
+    }
+
     static public CompletableFuture<Map<String, String>> fetchToken(String uuid) {
         return CompletableFuture.supplyAsync(() -> {
             String serverUrl = "http://easycoder.puhuacloud.com/api/easycoder-api/app/user/getToken/" + uuid;

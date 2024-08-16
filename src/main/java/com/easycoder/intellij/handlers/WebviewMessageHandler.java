@@ -4,6 +4,8 @@ import com.easycoder.intellij.constant.HttpRequest;
 import com.easycoder.intellij.enums.MessageId;
 import com.easycoder.intellij.http.HttpToolkits;
 import com.easycoder.intellij.model.WebviewMessage;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 
@@ -46,6 +48,18 @@ public class WebviewMessageHandler {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        if (messageId.equals(MessageId.WebviewInitQaExamples)) {
+            String modifiedStream = HttpToolkits.doHttpGet(message);
+            HashMap<String, Object> payload = new HashMap<>();
+            // 直接传 string 嵌套的 json 不会被 webview 端解析
+            // 如果要保留完整的 json 需要转换
+            payload.put("$response", new Gson().fromJson(modifiedStream, JsonObject.class));
+            return WebviewMessage.builder()
+                .id(messageId)
+                .payload(payload)
+                .build();
         }
 
         return null;
