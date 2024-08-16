@@ -31,4 +31,8 @@ public final class EasyCoderSideWindowService {
         CefBrowser browser = this.getEasyCoderSideWindow().jbCefBrowser().getCefBrowser();
         browser.executeJavaScript("window.postMessage(" + result + ",'*');", browser.getURL(), 0);
     }
+    public void notifyIdeAppInstance(@NotNull String result) {
+        CefBrowser browser = this.getEasyCoderSideWindow().jbCefBrowser().getCefBrowser();
+        browser.executeJavaScript("window.postMessage(" + result + ",'*');", browser.getURL(), 0);
+    }
 }

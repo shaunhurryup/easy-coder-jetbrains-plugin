@@ -2,6 +2,11 @@ package com.easycoder.intellij.http;
 
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
+import com.easycoder.intellij.enums.MessageId;
+import com.easycoder.intellij.services.EasyCoderSideWindowService;
+import com.google.gson.JsonObject;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.project.Project;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -23,7 +28,6 @@ public class HttpToolkits {
                         if (username == null || userId == null) {
                             throw new RuntimeException("Fail to sign in, missing username or userId");
                         }
-                        // TODO: Implement Station.flow().p2w() equivalent
                         return Map.of("token", token, "username", username, "userId", userId);
                     }
                 } catch (Exception e) {
@@ -37,5 +41,39 @@ public class HttpToolkits {
             }
             return null;
         });
+    }
+
+    /**
+     * 1. 把消息传给 webview
+     * 2. 全局记录 account 信息
+     * @param project
+     * @param map
+     * @return
+     */
+    static public void signIn(Project project, Map<String, String> map) {
+        JsonObject request = new JsonObject();
+        request.addProperty("id", MessageId.SuccessfulAuth.name());
+
+        JsonObject payload = new JsonObject();
+        payload.addProperty("account", map.get("username"));
+        payload.addProperty("accessToken", map.get("token"));
+
+        request.add("payload", payload);
+
+        PropertiesComponent.getInstance().setValue("easycoder:token", map.get("token"));
+        PropertiesComponent.getInstance().setValue("easycoder:username", map.get("username"));
+        PropertiesComponent.getInstance().setValue("easycoder:userId", map.get("userId"));
+
+        project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(request);
+    }
+
+    static public void signOut(Project project) {
+        PropertiesComponent.getInstance().unsetValue("easycoder:token");
+        PropertiesComponent.getInstance().unsetValue("easycoder:username");
+        PropertiesComponent.getInstance().unsetValue("easycoder:userId");
+
+        JsonObject message = new JsonObject();
+        message.addProperty("id", MessageId.SignOutExtension.name());
+        project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(message);
     }
 }

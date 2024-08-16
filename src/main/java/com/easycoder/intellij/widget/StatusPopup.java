@@ -53,7 +53,7 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
                     openWebpage();
                 } else if (Const.LOGIN_OUT.equals(selectedValue)) {
                     PropertiesComponent.getInstance().setValue("easycoder.is-login", false);
-                    clearToken();
+                    HttpToolkits.signOut(project);
                 }
                 update();  // Refresh the status bar widget to reflect the new state
                 return FINAL_CHOICE;
@@ -67,32 +67,13 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
         String uuid = UUID.randomUUID().toString();
         String targetUrl = Const.WEBSITE + "?sessionId=" + uuid;
         BrowserUtil.browse(targetUrl);
+
         CompletableFuture<Map<String, String>> future = HttpToolkits.fetchToken(uuid);
         future.thenAccept(map -> {
             if (map != null) {
-                JsonObject message = new JsonObject();
-                message.addProperty("id", MessageId.SuccessfulAuth.name());
-                JsonObject payload = new JsonObject();
-                payload.addProperty("account", map.get("username"));
-                payload.addProperty("accessToken", map.get("token"));
-                message.add("payload", payload);
-                project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(message);
-
-                PropertiesComponent.getInstance().setValue("easycoder:token", map.get("token"));
-                PropertiesComponent.getInstance().setValue("easycoder:username", map.get("username"));
-                PropertiesComponent.getInstance().setValue("easycoder:userId", map.get("userId"));
+                HttpToolkits.signIn(project, map);
             }
         });
-    }
-
-    private void clearToken() {
-        PropertiesComponent.getInstance().unsetValue("easycoder:token");
-        PropertiesComponent.getInstance().unsetValue("easycoder:username");
-        PropertiesComponent.getInstance().unsetValue("easycoder:userId");
-
-        JsonObject message = new JsonObject();
-        message.addProperty("id", MessageId.SignOutExtension.name());
-        project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(message);
     }
 
     @Override

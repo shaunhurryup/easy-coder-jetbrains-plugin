@@ -2,16 +2,15 @@ package com.easycoder.intellij.window;
 
 import com.easycoder.intellij.enums.EasyCoderURI;
 import com.easycoder.intellij.enums.MessageId;
+import com.easycoder.intellij.enums.MessageType;
 import com.easycoder.intellij.handlers.CustomSchemeHandlerFactory;
-import com.easycoder.intellij.handlers.WebviewMessageFactory;
+import com.easycoder.intellij.handlers.WebviewMessageHandler;
 import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderUtils;
-import com.github.markusbernhardt.proxy.util.PlatformUtil.Desktop;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -19,8 +18,6 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.jcef.JBCefBrowser;
 import com.intellij.ui.jcef.JBCefBrowserBase;
 import com.intellij.ui.jcef.JBCefJSQuery;
-import com.intellij.util.messages.MessageHandler;
-
 import org.cef.CefApp;
 import org.cef.browser.CefBrowser;
 import org.cef.browser.CefFrame;
@@ -29,10 +26,6 @@ import org.cef.handler.CefLoadHandler;
 import org.cef.network.CefRequest;
 
 import javax.swing.*;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.Objects;
 
 public class EasyCoderSideWindow {
@@ -89,41 +82,19 @@ public class EasyCoderSideWindow {
         return this.jbCefBrowser;
     }
 
-    private String mockHttpGet() {
-        try {
-            // 创建 HttpClient 对象
-            HttpClient client = HttpClient.newHttpClient();
-
-            // 创建 HttpRequest 对象
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("https://jsonplaceholder.typicode.com/todos/1"))
-                    .GET()
-                    .build();
-
-            // 发送请求并获取响应
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-            return response.body();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     private void registerJsCallJavaHandler(JBCefBrowser browser) {
         // Jetbrains Chrome Extension Framework
         JBCefJSQuery query = JBCefJSQuery.create((JBCefBrowserBase) browser);
         query.addHandler((String arg) -> {
             try {
-                // webview -> extension
-                WebviewMessage webviewMessage = new Gson().fromJson(arg, WebviewMessage.class);
-                
-                // 使用命令模式处理不同的消息ID
-                WebviewMessageFactory.handle(webviewMessage);
-
+                WebviewMessage requestMessage = new Gson().fromJson(arg, WebviewMessage.class);
+                WebviewMessage responseMessage = WebviewMessageHandler.run(requestMessage);
+                if (requestMessage.getId().equals(MessageId.OpenSignInWebpage)) {
+                    project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new Gson().toJson(responseMessage));
+                }
+                // todo: 发送到 webview 的消息用不到
                 // extension -> webview
-                String mockHttpGetResponse = mockHttpGet();
-                return new JBCefJSQuery.Response(mockHttpGetResponse);
+                return null;
             } catch (Exception e) {
                 logger.warn("JBCefJSQuery error", e);
                 return new JBCefJSQuery.Response(null, 0, "errorMsg");
