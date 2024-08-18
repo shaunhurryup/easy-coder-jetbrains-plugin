@@ -6,12 +6,15 @@ import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderUtils;
 import com.easycoder.intellij.widget.EasyCoderWidget;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.wm.WindowManager;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -20,6 +23,9 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 public class EasyCoderCompleteService {
@@ -29,7 +35,6 @@ public class EasyCoderCompleteService {
     private static final String MIDDLE_TAG = "<fim_middle>";
     private static final String REG_EXP = "data:\\s?(.*?)\n";
     private static final Pattern PATTERN = Pattern.compile(REG_EXP);
-    private static long lastRequestTime = 0;
     private static boolean httpRequestFinFlag = true;
     private int statusCode = 200;
 
@@ -39,38 +44,14 @@ public class EasyCoderCompleteService {
         if (!httpRequestFinFlag || !settings.isSaytEnabled() || StringUtils.isBlank(contents)) {
             return null;
         }
-        if (contents.contains(PREFIX_TAG) || contents.contains(SUFFIX_TAG) || contents.contains(MIDDLE_TAG) || contents.contains(PrefixString.RESPONSE_END_TAG)) {
-            return null;
-        }
         String prefix = contents.substring(EasyCoderUtils.prefixHandle(0, cursorPosition), cursorPosition);
         String suffix = contents.substring(cursorPosition, EasyCoderUtils.suffixHandle(cursorPosition, editorContents.length()));
-        String generatedText = "";
-        String easyCoderPrompt = generateFIMPrompt(prefix, suffix);
-        if(settings.isCPURadioButtonEnabled()){
-            HttpPost httpPost = buildApiPostForCPU(settings, prefix, suffix);
-            generatedText = getApiResponseForCPU(settings, httpPost, easyCoderPrompt);
-        }else{
-            HttpPost httpPost = buildApiPostForGPU(settings, easyCoderPrompt);
-            generatedText = getApiResponseForGPU(settings, httpPost, easyCoderPrompt);
+        
+        String generatedText = buildApiPostForBackend(settings, prefix, suffix);
+        if (StringUtils.isBlank(generatedText)) {
+            return null;
         }
-        String[] suggestionList = null;
-        if (generatedText.contains(MIDDLE_TAG)) {
-            String[] parts = generatedText.split(MIDDLE_TAG);
-            if (parts.length > 0) {
-                suggestionList = StringUtils.splitPreserveAllTokens(parts[1], "\n");
-                if (suggestionList.length == 1 && suggestionList[0].trim().isEmpty()) {
-                    return null;
-                }
-                if (suggestionList.length > 1) {
-                    for (int i = 0; i < suggestionList.length; i++) {
-                        StringBuilder sb = new StringBuilder(suggestionList[i]);
-                        sb.append("\n");
-                        suggestionList[i] = sb.toString();
-                    }
-                }
-            }
-        }
-        return suggestionList;
+        return new String[] { generatedText };
     }
 
     private String generateFIMPrompt(String prefix, String suffix) {
@@ -93,6 +74,55 @@ public class EasyCoderCompleteService {
         StringEntity requestEntity = new StringEntity(httpBody.toString(), ContentType.APPLICATION_JSON);
         httpPost.setEntity(requestEntity);
         return httpPost;
+    }
+
+    private String buildApiPostForBackend(EasyCoderSettings settings, String prefix, String suffix) {
+        httpRequestFinFlag = false;
+        String apiURL = "http://easycoder.puhuacloud.com/api/easycoder-api/app/session/completions";
+        HttpPost httpPost = new HttpPost(apiURL);
+
+        httpPost.setHeader("Content-Type", "application/json");
+
+        JsonObject body = new JsonObject();
+        body.addProperty("prefix", prefix);
+        body.addProperty("suffix", suffix);
+        body.addProperty("rows", 3);
+        StringEntity requestEntity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
+
+        int timeoutMs = 10_000;
+        RequestConfig requestConfig = RequestConfig.custom()
+            .setConnectTimeout(timeoutMs)
+            .setSocketTimeout(timeoutMs)
+            .build();
+        httpPost.setConfig(requestConfig);
+
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+                try {
+                    CloseableHttpClient httpClient = HttpClients.createDefault();
+
+                    String token = PropertiesComponent.getInstance().getValue("easycoder:token");
+                    httpPost.setHeader("token", token);
+
+                    HttpResponse response = httpClient.execute(httpPost);
+                    String responseBody = EntityUtils.toString(response.getEntity());
+                    httpClient.close();
+                    
+                    JsonObject jsonResponse = JsonParser.parseString(responseBody).getAsJsonObject();
+                    return jsonResponse.getAsJsonObject("data").get("content").getAsString();
+                } catch (Exception e) {
+                    return "";
+                }
+            }).orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+            .exceptionally(e -> "");
+
+        try {
+            return future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            return "";
+        } finally {
+            httpRequestFinFlag = true;
+        }
     }
 
     private String getApiResponseForCPU(EasyCoderSettings settings, HttpPost httpPost, String easyCoderPrompt) {
