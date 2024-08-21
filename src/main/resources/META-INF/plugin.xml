@@ -73,10 +73,8 @@
             <action id="EasyCoder.OptimizeCode" class="com.easycoder.intellij.actions.assistants.OptimizeCode" text="Optimize Code">
                 <override-text place="GoToAction" text="EasyCoder: Optimize Code"/>
             </action>
-            <action id="EasyCoder.CleanCode" class="com.easycoder.intellij.actions.assistants.CleanCode" text="Clean Code">
-                <override-text place="GoToAction" text="EasyCoder: Clean Code"/>
-            </action>
             <separator/>
+
             <action id="EasyCoder.CommentCode" class="com.easycoder.intellij.actions.assistants.GenerateComment" text="Generate Comment">
                 <override-text place="GoToAction" text="EasyCoder: Generate Comment"/>
                 <keyboard-shortcut first-keystroke="alt V" keymap="$default" replace-all="true"/>
@@ -87,11 +85,9 @@
                 <override-text place="GoToAction" text="EasyCoder: Generate Unit Tests"/>
             </action>
             <separator/>
+
             <action id="EasyCoder.PerformanceCode" class="com.easycoder.intellij.actions.assistants.PerformanceCheck" text="Performance Check">
                 <override-text place="GoToAction" text="EasyCoder: Performance Check"/>
-            </action>
-            <action id="EasyCoder.StyleCode" class="com.easycoder.intellij.actions.assistants.StyleCheck" text="Style Check">
-                <override-text place="GoToAction" text="EasyCoder: Style Check"/>
             </action>
             <action id="EasyCoder.SecurityCode" class="com.easycoder.intellij.actions.assistants.SecurityCheck" text="Security Check">
                 <override-text place="GoToAction" text="EasyCoder: Security Check"/>
