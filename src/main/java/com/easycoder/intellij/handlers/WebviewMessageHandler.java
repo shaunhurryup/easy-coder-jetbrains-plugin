@@ -9,9 +9,14 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.SelectionModel;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +25,10 @@ public class WebviewMessageHandler {
     public static WebviewMessage run(WebviewMessage message, Project project) {
         MessageId messageId = message.getId();
 
-        if (messageId.equals(MessageId.WebviewQuestion)) {
+        if (
+                messageId.equals(MessageId.WebviewQuestion) ||
+                        messageId.equals(MessageId.GenerateComment_Menu)
+        ) {
             HttpToolkits.createEventSource(message, project);
         }
 
@@ -56,7 +64,7 @@ public class WebviewMessageHandler {
                 e.printStackTrace();
             }
         }
-        
+
         if (messageId.equals(MessageId.WebviewInitQaExamples)) {
             String modifiedStream = HttpToolkits.doHttpGet(message);
             if (modifiedStream == null) {
@@ -88,6 +96,40 @@ public class WebviewMessageHandler {
                     .build();
             project.getService(EasyCoderSideWindowService.class)
                     .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
+        }
+
+        if (messageId.equals(MessageId.ReplaceEditorText)) {
+            ApplicationManager.getApplication().invokeLater(() -> {
+                FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+                Editor editor = fileEditorManager.getSelectedTextEditor();
+
+                if (editor == null) {
+                    // 可以根据需要替换 VscodeMessage.error 方法
+                    System.err.println("Expect editor to be active, but got null");
+                    return;
+                }
+
+                SelectionModel selectionModel = editor.getSelectionModel();
+                Document document = editor.getDocument();
+
+                WriteCommandAction.runWriteCommandAction(project, () -> {
+                    // 先留着
+                    //                isProgrammaticChange = true;
+
+                    if (selectionModel.hasSelection()) {
+                        // 如果有选中内容，则替换选中内容
+                        document.replaceString(selectionModel.getSelectionStart(), selectionModel.getSelectionEnd(), message.getPayload().get("value").getAsString());
+                    }
+                    // 先留着
+//                else if (insert) {
+//                    // 如果没有选中内容，并且 insert 为 true，则插入新内容
+//                    document.insertString(selectionModel.getSelectionStart(), text);
+//                }
+
+//                ApplicationManager.getApplication().invokeLater(() -> isProgrammaticChange = false);
+                });
+
+            });
         }
 
         return null;
