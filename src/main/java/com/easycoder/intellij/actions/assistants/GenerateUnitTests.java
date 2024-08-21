@@ -1,8 +1,11 @@
 package com.easycoder.intellij.actions.assistants;
 
 import com.easycoder.intellij.constant.PrefixString;
+import com.easycoder.intellij.enums.MessageId;
+import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.easycoder.intellij.utils.EditorUtils;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
@@ -61,28 +64,23 @@ public class GenerateUnitTests extends DumbAwareAction implements IntentionActio
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getData(LangDataKeys.PROJECT);
-        if (Objects.isNull(project)) {
-            return;
-        }
         ApplicationManager.getApplication().invokeLater(() -> {
-            VirtualFile vf = e.getRequiredData(CommonDataKeys.VIRTUAL_FILE);
             Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-            if (EditorUtils.isNoneTextSelected(editor)) {
+            String selectedText = editor.getSelectionModel().getSelectedText();
+            if (Objects.isNull(selectedText)) {
                 return;
             }
-            PsiFile psiFile = e.getRequiredData(CommonDataKeys.PSI_FILE);
-            JsonObject json = EditorUtils.getFileSelectionDetails(editor, psiFile, true, PrefixString.UNIT_TEST_CODE);
-            JsonObject result = new JsonObject();
-            ToolWindowManager tool = ToolWindowManager.getInstance(project);
-            Objects.requireNonNull(tool.getToolWindow("EasyCoder")).activate(() -> {
-                if(logger.isDebugEnabled()){
-                    logger.debug("******************* UnitTestCode Enabled EasyCoder window *******************");
-                }
-            }, true, true);
-            json.addProperty("fileName", vf.getName());
-            json.addProperty("filePath", vf.getCanonicalPath());
-            result.addProperty("data", json.toString());
-            (project.getService(EasyCoderSideWindowService.class)).notifyIdeAppInstance(result);
+
+            JsonObject payload = new JsonObject();
+            payload.addProperty("content", selectedText);
+            payload.addProperty("command", "为下面代码生成单元测试");
+
+            WebviewMessage request = WebviewMessage.builder()
+                    .id(MessageId.GenerateUnitTest_Menu)
+                    .payload(payload)
+                    .build();
+
+            project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new Gson().toJson(request));
         }, ModalityState.NON_MODAL);
     }
 }

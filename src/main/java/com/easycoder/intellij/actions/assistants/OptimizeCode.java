@@ -1,8 +1,11 @@
 package com.easycoder.intellij.actions.assistants;
 
 import com.easycoder.intellij.constant.PrefixString;
+import com.easycoder.intellij.enums.MessageId;
+import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.easycoder.intellij.utils.EditorUtils;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
@@ -61,28 +64,23 @@ public class OptimizeCode extends DumbAwareAction implements IntentionAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getData(LangDataKeys.PROJECT);
-        if (Objects.isNull(project)) {
-            return;
-        }
         ApplicationManager.getApplication().invokeLater(() -> {
-            VirtualFile vf = e.getRequiredData(CommonDataKeys.VIRTUAL_FILE);
             Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-            if (EditorUtils.isNoneTextSelected(editor)) {
+            String selectedText = editor.getSelectionModel().getSelectedText();
+            if (Objects.isNull(selectedText)) {
                 return;
             }
-            PsiFile psiFile = e.getRequiredData(CommonDataKeys.PSI_FILE);
-            JsonObject jsonObject = EditorUtils.getFileSelectionDetails(editor, psiFile, true, PrefixString.OPTIMIZE_CODE);
-            JsonObject result = new JsonObject();
-            ToolWindowManager tool = ToolWindowManager.getInstance(project);
-            Objects.requireNonNull(tool.getToolWindow("EasyCoder")).activate(() -> {
-                if(logger.isDebugEnabled()){
-                    logger.debug("******************* OptimizeCode Enabled EasyCoder window *******************");
-                }
-            }, true, true);
-            jsonObject.addProperty("fileName", vf.getName());
-            jsonObject.addProperty("filePath", vf.getCanonicalPath());
-            result.addProperty("data", jsonObject.toString());
-            (project.getService(EasyCoderSideWindowService.class)).notifyIdeAppInstance(result);
+
+            JsonObject payload = new JsonObject();
+            payload.addProperty("content", selectedText);
+            payload.addProperty("command", "帮我优化这段代码");
+
+            WebviewMessage request = WebviewMessage.builder()
+                    .id(MessageId.OptimizeCode_Menu)
+                    .payload(payload)
+                    .build();
+
+            project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new Gson().toJson(request));
         }, ModalityState.NON_MODAL);
     }
 }
