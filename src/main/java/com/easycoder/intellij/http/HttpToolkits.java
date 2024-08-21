@@ -18,6 +18,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -63,7 +64,7 @@ public class HttpToolkits {
             // StringBuilder dataBuilder = new StringBuilder();
 
             while ((bytesRead = inputStream.read(buffer)) != -1) {
-                String chunk = new String(buffer, 0, bytesRead);
+                String chunk = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
                 // dataBuilder.append(chunk);
 
                 JsonObject payload = new JsonObject();
