@@ -27,6 +27,31 @@ public class WebviewMessageHandler {
     public static WebviewMessage run(WebviewMessage message, Project project) {
         MessageId messageId = message.getId();
 
+        if (messageId.equals(MessageId.WebviewCommandQuestion)) {
+            String selectedText = getSelectedText(project);
+            if (selectedText == null || selectedText.isEmpty()) {
+                JsonObject payload = new JsonObject();
+                payload.addProperty("value", "Please select some code first");
+                WebviewMessage webviewMessage = WebviewMessage.builder()
+                    .id(MessageId.ToastWarning)
+                    .payload(payload)
+                    .build();
+                project.getService(EasyCoderSideWindowService.class)
+                    .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
+                return null;
+            }
+
+            JsonObject payload = new JsonObject();
+            payload.addProperty("code", selectedText);
+            payload.add("action", message.getPayload().get("action"));
+            WebviewMessage webviewMessage = WebviewMessage.builder()
+                .id(MessageId.WebviewCommandQuestion)
+                .payload(payload)
+                .build();
+            project.getService(EasyCoderSideWindowService.class)
+                .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
+        }
+
         if (messageId.equals(MessageId.CopyToClipboard)) {
             String text = message.getPayload().get("value").getAsString();
             ApplicationManager.getApplication().invokeLater(() -> {
@@ -144,5 +169,20 @@ public class WebviewMessageHandler {
         }
 
         return null;
+    }
+
+    static public String getSelectedText(Project project) {
+        final String[] selectedText = {""};
+
+        ApplicationManager.getApplication().invokeLater(() -> {
+            FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+            Editor editor = fileEditorManager.getSelectedTextEditor();
+            if (editor != null) {
+                selectedText[0] = editor.getSelectionModel().getSelectedText();
+            }
+        });
+
+        ApplicationManager.getApplication().invokeAndWait(() -> {});
+        return selectedText[0];
     }
 }
