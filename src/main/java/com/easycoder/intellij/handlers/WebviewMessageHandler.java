@@ -27,6 +27,11 @@ public class WebviewMessageHandler {
     public static WebviewMessage run(WebviewMessage message, Project project) {
         MessageId messageId = message.getId();
 
+        if (messageId.equals(MessageId.OpenExternalLink)) {
+            String url = message.getPayload().get("url").getAsString();
+            BrowserUtil.browse(url);
+        }
+
         if (messageId.equals(MessageId.ClearSelectedText)) {
             removeSelectedText(project);
         }

@@ -51,4 +51,6 @@ public enum MessageId {
     ShowInfoMessage,          // Create VSCode info message popup from Webview
     ToastWarning,             // Display a warning toast
     CatchWebviewError,        // Global exception catcher for Webview
+
+    OpenExternalLink,
 }
