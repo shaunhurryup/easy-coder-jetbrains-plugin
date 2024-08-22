@@ -46,25 +46,12 @@ public class EasyCoderWidget extends EditorBasedWidget
     public static final Key<String[]> SHELL_CODER_CODE_SUGGESTION = new Key<>("EasyCoder Code Suggestion");
     public static final Key<Integer> SHELL_CODER_POSITION = new Key<>("EasyCoder Position");
     public static boolean enableSuggestion = false;
-    private final ComboBox<String> comboBox;
     private final TextPanel.WithIconAndArrows panel = new TextPanel.WithIconAndArrows();
 
 
 
     protected EasyCoderWidget(@NotNull Project project) {
         super(project);
-        comboBox = new ComboBox<>(new String[]{"Option 1", "Option 2", "Option 3"});
-        comboBox.setEditable(false);
-
-        panel.setText("Select Option");
-        panel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                // 在单击状态栏时显示选择框
-                JComboBox<String> dropdown = comboBox;
-                JOptionPane.showMessageDialog(null, dropdown, "Select Option", JOptionPane.PLAIN_MESSAGE);
-            }
-        });
     }
 
     @Override

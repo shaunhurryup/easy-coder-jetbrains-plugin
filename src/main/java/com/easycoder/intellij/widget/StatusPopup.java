@@ -1,13 +1,12 @@
 package com.easycoder.intellij.widget;
 
 import com.easycoder.intellij.constant.Const;
-import com.easycoder.intellij.enums.MessageId;
+import com.easycoder.intellij.handlers.GlobalStore;
 import com.easycoder.intellij.http.HttpToolkits;
-import com.easycoder.intellij.services.EasyCoderSideWindowService;
-import com.google.gson.JsonObject;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
@@ -16,7 +15,6 @@ import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.StatusBarWidget;
 import com.intellij.openapi.wm.impl.status.EditorBasedStatusBarPopup;
-import org.apache.commons.httpclient.HttpURL;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +25,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class StatusPopup extends EditorBasedStatusBarPopup {
-    Project project;
+    private Project project;
+    public static final String ID = "StatusPopupFactory";
 
     public StatusPopup(@NotNull Project project) {
         super(project, false);
@@ -37,7 +36,8 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
     @NotNull
     @Override
     protected WidgetState getWidgetState(@Nullable VirtualFile virtualFile) {
-        return new WidgetState("Click to see more", "EasyCoder", true);
+        boolean loading = GlobalStore.loading;
+        return new WidgetState("This is tooltip", loading ? "Loading..." : "EasyCoder", true);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
                 } else if (Const.LOGIN_OUT.equals(selectedValue)) {
                     HttpToolkits.signOut(project);
                 }
-                update();  // Refresh the status bar widget to reflect the new state
+                ApplicationManager.getApplication().invokeLater(() -> update());  // 在主线程中更新状态栏组件
                 return FINAL_CHOICE;
             }
         };
@@ -66,10 +66,16 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
         String targetUrl = Const.WEBSITE + "?sessionId=" + uuid;
         BrowserUtil.browse(targetUrl);
 
+        ApplicationManager.getApplication().invokeLater(() -> update());  // 在主线程中更新状态栏组件
+
         CompletableFuture<Map<String, String>> future = HttpToolkits.fetchToken(uuid);
-        future.thenAccept(map -> {
-            if (map != null) {
-                HttpToolkits.signIn(project, map);
+        future.whenComplete((map, throwable) -> {
+            try {
+                if (throwable == null && map != null) {
+                    HttpToolkits.signIn(project, map);
+                }
+            } finally {
+                ApplicationManager.getApplication().invokeLater(() -> update());  // 在主线程中更新状态栏组件
             }
         });
     }
@@ -81,6 +87,6 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
 
     @Override
     public @NonNls @NotNull String ID() {
-        return "easycoder.status.popup";
+        return ID;
     }
 }
