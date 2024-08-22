@@ -37,7 +37,8 @@ public class WebviewMessageHandler {
 
         if (
                 messageId.equals(MessageId.WebviewQuestion) ||
-                        messageId.equals(MessageId.GenerateComment_Menu)
+                        messageId.equals(MessageId.GenerateComment_Menu) ||
+                    messageId.equals(MessageId.ReGenerateAnswer)
         ) {
             HttpToolkits.createEventSource(message, project);
         }
