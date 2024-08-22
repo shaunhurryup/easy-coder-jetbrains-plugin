@@ -27,6 +27,10 @@ public class WebviewMessageHandler {
     public static WebviewMessage run(WebviewMessage message, Project project) {
         MessageId messageId = message.getId();
 
+        if (messageId.equals(MessageId.ClearSelectedText)) {
+            removeSelectedText(project);
+        }
+
         if (messageId.equals(MessageId.WebviewCommandQuestion)) {
             String selectedText = getSelectedText(project);
             if (selectedText == null || selectedText.isEmpty()) {
@@ -184,5 +188,15 @@ public class WebviewMessageHandler {
 
         ApplicationManager.getApplication().invokeAndWait(() -> {});
         return selectedText[0];
+    }
+
+    static public void removeSelectedText(Project project) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+            Editor editor = fileEditorManager.getSelectedTextEditor();
+            if (editor != null) {
+                editor.getSelectionModel().removeSelection();
+            }
+        });
     }
 }
