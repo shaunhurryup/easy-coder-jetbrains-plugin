@@ -15,8 +15,10 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 
+import java.awt.datatransfer.StringSelection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +26,14 @@ import java.util.concurrent.CompletableFuture;
 public class WebviewMessageHandler {
     public static WebviewMessage run(WebviewMessage message, Project project) {
         MessageId messageId = message.getId();
+
+        if (messageId.equals(MessageId.CopyToClipboard)) {
+            String text = message.getPayload().get("value").getAsString();
+            ApplicationManager.getApplication().invokeLater(() -> {
+                // 使用 IntelliJ Platform 提供的工具类将文本复制到剪贴板
+                CopyPasteManager.getInstance().setContents(new StringSelection(text));
+            });
+        }
 
         if (
                 messageId.equals(MessageId.WebviewQuestion) ||

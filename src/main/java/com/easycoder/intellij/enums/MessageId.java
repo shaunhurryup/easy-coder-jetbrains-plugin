@@ -59,5 +59,6 @@ public enum MessageId {
     ClearSelectedText,
     // 获取插件配置
     GetExtensionSettings,
-    ToggleColorTheme;
+    ToggleColorTheme,
+    CopyToClipboard,
 }
