@@ -50,6 +50,7 @@
         <notificationGroup id="EasyCoder" displayType="STICKY_BALLOON" isLogByDefault="true"/>
         <toolWindow id="EasyCoder" anchor="right" icon="com.easycoder.intellij.utils.EasyCoderIcons.Action" factoryClass="com.easycoder.intellij.window.EasyCoderSideWindowFactory"/>
         <projectService id="EasyCoderSideWindowService" serviceImplementation="com.easycoder.intellij.services.EasyCoderSideWindowService"/>
+        <postStartupActivity implementation="com.easycoder.intellij.listener.TextSelectionStartupActivity"/>
     </extensions>
 
     <actions>
