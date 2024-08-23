@@ -126,6 +126,42 @@ public class HttpToolkits {
         }
     }
 
+    public static String doHttpPost(WebviewMessage message) {
+        JsonObject payload = message.getPayload();
+        String route = payload.get("route").getAsString();
+        JsonObject body = payload.get("body").getAsJsonObject();
+
+        String token = PropertiesComponent.getInstance().getValue("easycoder:token");
+
+        if (token == null) {
+            return null;
+        }
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+            .uri(URI.create(baseURL + route))
+            .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+            .header("Content-Type", "application/json")
+            .header("token", token);
+
+        HttpRequest request = requestBuilder.build();
+
+        System.out.println("[EasyCoder] -- HttpUtil.doHttpPost -- url: " + baseURL + route);
+        System.out.println("[EasyCoder] -- HttpUtil.doHttpPost -- body: " + body);
+
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            String responseBody = response.body();
+            System.out.println("[EasyCoder] -- HttpUtil.doHttpPost -- response: " + responseBody);
+            return responseBody;
+        } catch (IOException | InterruptedException e) {
+            System.err.println("[Request Failed] -- " + e.getMessage());
+            // VscodeMessage.error(e.getMessage());
+            return null;
+        }
+    }
+
     static public CompletableFuture<Map<String, String>> fetchToken(String uuid) {
         return CompletableFuture.supplyAsync(() -> {
             String serverUrl = "http://easycoder.puhuacloud.com/api/easycoder-api/app/user/getToken/" + uuid;

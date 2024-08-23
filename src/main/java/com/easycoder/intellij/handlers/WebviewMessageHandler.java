@@ -27,6 +27,12 @@ public class WebviewMessageHandler {
     public static WebviewMessage run(WebviewMessage message, Project project) {
         MessageId messageId = message.getId();
 
+        if (messageId.equals(MessageId.GetHistoryDialogs)) {
+            String modifiedStream = HttpToolkits.doHttpPost(message);
+            sendHttpResponse2Webview(modifiedStream, messageId, project);
+        }
+
+
         if (messageId.equals(MessageId.OpenExternalLink)) {
             String url = message.getPayload().get("url").getAsString();
             BrowserUtil.browse(url);
@@ -112,20 +118,7 @@ public class WebviewMessageHandler {
 
         if (messageId.equals(MessageId.WebviewInitQaExamples)) {
             String modifiedStream = HttpToolkits.doHttpGet(message);
-            if (modifiedStream == null) {
-                return null;
-            }
-
-            JsonObject payload = new JsonObject();
-            // 直接传 string 嵌套的 json 不会被 webview 端解析
-            // 如果要保留完整的 json 需要转换
-            payload.add("$response", new Gson().fromJson(modifiedStream, JsonObject.class));
-            WebviewMessage webviewMessage = WebviewMessage.builder()
-                    .id(messageId)
-                    .payload(payload)
-                    .build();
-            project.getService(EasyCoderSideWindowService.class)
-                    .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
+            sendHttpResponse2Webview(modifiedStream, messageId, project);
         }
 
         if (messageId.equals(MessageId.WebviewMount)) {
@@ -203,5 +196,22 @@ public class WebviewMessageHandler {
                 editor.getSelectionModel().removeSelection();
             }
         });
+    }
+
+    static public void sendHttpResponse2Webview(String responseBody, MessageId messageId, Project project) {
+        if (responseBody == null) {
+            return;
+        }
+
+        JsonObject payload = new JsonObject();
+        // 直接传 string 嵌套的 json 不会被 webview 端解析
+        // 如果要保留完整的 json 需要转换
+        payload.add("$response", new Gson().fromJson(responseBody, JsonObject.class));
+        WebviewMessage webviewMessage = WebviewMessage.builder()
+            .id(messageId)
+            .payload(payload)
+            .build();
+        project.getService(EasyCoderSideWindowService.class)
+            .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
     }
 }
