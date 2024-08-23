@@ -75,9 +75,10 @@ public class WebviewMessageHandler {
         }
 
         if (
-                messageId.equals(MessageId.WebviewQuestion) ||
-                        messageId.equals(MessageId.GenerateComment_Menu) ||
-                    messageId.equals(MessageId.ReGenerateAnswer)
+            messageId.equals(MessageId.WebviewQuestion) ||
+            messageId.equals(MessageId.GenerateComment_Menu) ||
+            messageId.equals(MessageId.ReGenerateAnswer) ||
+            messageId.equals(MessageId.WebviewCodeTranslation)
         ) {
             HttpToolkits.createEventSource(message, project);
         }
@@ -105,11 +106,11 @@ public class WebviewMessageHandler {
                 payload.addProperty("accessToken", data.get("token"));
 
                 WebviewMessage webviewMessage = WebviewMessage.builder()
-                        .id(MessageId.SuccessfulAuth)
-                        .payload(payload)
-                        .build();
+                    .id(MessageId.SuccessfulAuth)
+                    .payload(payload)
+                    .build();
                 project.getService(EasyCoderSideWindowService.class)
-                        .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
+                    .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -128,11 +129,11 @@ public class WebviewMessageHandler {
             payload.addProperty("accessToken", token);
 
             WebviewMessage webviewMessage = WebviewMessage.builder()
-                    .id(MessageId.SuccessfulAuth)
-                    .payload(payload)
-                    .build();
+                .id(MessageId.SuccessfulAuth)
+                .payload(payload)
+                .build();
             project.getService(EasyCoderSideWindowService.class)
-                    .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
+                .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
         }
 
         if (messageId.equals(MessageId.ReplaceEditorText)) {
@@ -183,7 +184,8 @@ public class WebviewMessageHandler {
             }
         });
 
-        ApplicationManager.getApplication().invokeAndWait(() -> {});
+        ApplicationManager.getApplication().invokeAndWait(() -> {
+        });
         return selectedText[0];
     }
 
