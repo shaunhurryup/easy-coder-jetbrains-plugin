@@ -115,7 +115,7 @@ public class WebviewMessageHandler {
             }
         }
 
-        if (messageId.equals(MessageId.WebviewInitQaExamples) || messageId.equals(MessageId.GetHistoryDialogDetail)) {
+        if (messageId.equals(MessageId.WebviewInitQaExamples) || messageId.equals(MessageId.GetHistoryDialogDetail) || messageId.equals(MessageId.RemoveDialog32)) {
             String modifiedStream = HttpToolkits.doHttpGet(message);
             sendHttpResponse2Webview(modifiedStream, messageId, project);
         }
