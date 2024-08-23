@@ -32,7 +32,6 @@ public class WebviewMessageHandler {
             sendHttpResponse2Webview(modifiedStream, messageId, project);
         }
 
-
         if (messageId.equals(MessageId.OpenExternalLink)) {
             String url = message.getPayload().get("url").getAsString();
             BrowserUtil.browse(url);
@@ -116,7 +115,7 @@ public class WebviewMessageHandler {
             }
         }
 
-        if (messageId.equals(MessageId.WebviewInitQaExamples)) {
+        if (messageId.equals(MessageId.WebviewInitQaExamples) || messageId.equals(MessageId.GetHistoryDialogDetail)) {
             String modifiedStream = HttpToolkits.doHttpGet(message);
             sendHttpResponse2Webview(modifiedStream, messageId, project);
         }
