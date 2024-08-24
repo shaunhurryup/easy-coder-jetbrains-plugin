@@ -23,8 +23,11 @@ import java.awt.datatransfer.StringSelection;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class WebviewMessageHandler {
+    private static final AtomicReference<Runnable> lastAbortFunction = new AtomicReference<>();
+
     public static WebviewMessage run(WebviewMessage message, Project project) {
         MessageId messageId = message.getId();
 
@@ -81,7 +84,15 @@ public class WebviewMessageHandler {
             messageId.equals(MessageId.ReGenerateAnswer) ||
             messageId.equals(MessageId.WebviewCodeTranslation)
         ) {
-            HttpToolkits.createEventSource(message, project);
+            Runnable abortFunction = HttpToolkits.createEventSource(message, project);
+            lastAbortFunction.set(abortFunction);
+        }
+
+        if (messageId.equals(MessageId.WebviewAbortQa)) {
+            Runnable abortFunction = lastAbortFunction.getAndSet(null);
+            if (abortFunction != null) {
+                abortFunction.run();
+            }
         }
 
         if (messageId.equals(MessageId.OpenSignInWebpage)) {

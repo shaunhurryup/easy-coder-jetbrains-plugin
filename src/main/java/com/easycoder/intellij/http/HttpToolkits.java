@@ -25,22 +25,25 @@ import java.util.concurrent.CompletableFuture;
 import static com.easycoder.intellij.constant.HttpRequest.baseURL;
 
 public class HttpToolkits {
-    public static void createEventSource(WebviewMessage message, Project project) {
+    public static Runnable createEventSource(WebviewMessage message, Project project) {
         String route = message.getPayload().get("route").getAsString();
         Object body = message.getPayload().get("body");
-        String method = "POST";
+        String method = message.getPayload().get("method").getAsString();
 
         String token = PropertiesComponent.getInstance().getValue("easycoder:token");
         String url = baseURL + route;
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .header("token", token);
+                .uri(URI.create(url))
+                .header("token", token);
+
+        // Add new field for abort functionality
+        CompletableFuture<Void> abortFuture = new CompletableFuture<>();
 
         if ("POST".equalsIgnoreCase(method)) {
             requestBuilder.POST(HttpRequest.BodyPublishers.ofString(new Gson().toJson(body)))
-                .header("Content-Type", "application/json");
+                    .header("Content-Type", "application/json");
         } else {
             requestBuilder.GET();
         }
@@ -54,45 +57,62 @@ public class HttpToolkits {
             String sessionId = response.headers().firstValue("sessionid").orElse("");
             String recordId = response.headers().firstValue("recordid").orElse("");
 
-            if ((route.equals(ServiceRoute.SEND_QUESTION.getRoute()) || route.equals(ServiceRoute.RE_GENERATE.getRoute())) && (sessionId.isEmpty() || recordId.isEmpty())) {
+            if ((route.equals(ServiceRoute.SEND_QUESTION.getRoute())
+                    || route.equals(ServiceRoute.RE_GENERATE.getRoute()))
+                    && (sessionId.isEmpty() || recordId.isEmpty())) {
                 throw new RuntimeException("Empty session-id or record-id");
             }
 
-            InputStream inputStream = response.body();
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            // StringBuilder dataBuilder = new StringBuilder();
+            // Modify the reading logic to include abort check
+            new Thread(() -> {
+                try (InputStream inputStream = response.body()) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
 
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                String chunk = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
-                // dataBuilder.append(chunk);
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+                        // Check if abort was requested
+                        if (abortFuture.isDone()) {
+                            notifyWebview(project, message.getId(), MessageType.HandleEventSourceAbort, new JsonObject());
+                            return;
+                        }
 
-                JsonObject payload = new JsonObject();
-                payload.addProperty("data", chunk);
-                payload.addProperty("recordId", recordId);
-                payload.addProperty("sessionId", sessionId);
-                notifyWebview(project, message.getId(), MessageType.HandleEventSourceMessage, payload);
-            }
+                        String chunk = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
+                        JsonObject payload = new JsonObject();
+                        payload.addProperty("data", chunk);
+                        payload.addProperty("recordId", recordId);
+                        payload.addProperty("sessionId", sessionId);
+                        notifyWebview(project, message.getId(), MessageType.HandleEventSourceMessage, payload);
+                    }
 
-            notifyWebview(project, message.getId(), MessageType.HandleEventSourceSuccess, new JsonObject());
+                    notifyWebview(project, message.getId(), MessageType.HandleEventSourceSuccess, new JsonObject());
+                } catch (Exception e) {
+                    JsonObject errorPayload = new JsonObject();
+                    errorPayload.addProperty("error", e.getMessage());
+                    notifyWebview(project, message.getId(), MessageType.HandleEventSourceError, errorPayload);
+                }
+            }).start();
+
+            // Return a Runnable for the abort function
+            return () -> abortFuture.complete(null);
         } catch (Exception e) {
             JsonObject errorPayload = new JsonObject();
             errorPayload.addProperty("error", e.getMessage());
             notifyWebview(project, message.getId(), MessageType.HandleEventSourceError, errorPayload);
         }
 
-        notifyWebview(project, message.getId(), MessageType.HandleEventSourceAbort, new JsonObject());
+        // Return a no-op Runnable if an exception occurred
+        return () -> {};
     }
 
     private static void notifyWebview(Project project, MessageId messageId, MessageType type, JsonObject payload) {
         WebviewMessage responseMessage = WebviewMessage.builder()
-            .id(messageId)
-            .type(type)
-            .payload(payload)
-            .build();
-        project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new com.google.gson.Gson().toJson(responseMessage));
+                .id(messageId)
+                .type(type)
+                .payload(payload)
+                .build();
+        project.getService(EasyCoderSideWindowService.class)
+                .notifyIdeAppInstance(new com.google.gson.Gson().toJson(responseMessage));
     }
-
 
     static public String doHttpGet(WebviewMessage message) {
         String route = message.getPayload().get("route").getAsString();
@@ -106,8 +126,8 @@ public class HttpToolkits {
         HttpClient client = HttpClient.newHttpClient();
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-            .uri(URI.create(baseURL + route))
-            .GET();
+                .uri(URI.create(baseURL + route))
+                .GET();
 
         // 添加 headers
         requestBuilder.header("token", token);
@@ -140,10 +160,10 @@ public class HttpToolkits {
         HttpClient client = HttpClient.newHttpClient();
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-            .uri(URI.create(baseURL + route))
-            .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
-            .header("Content-Type", "application/json")
-            .header("token", token);
+                .uri(URI.create(baseURL + route))
+                .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .header("Content-Type", "application/json")
+                .header("token", token);
 
         HttpRequest request = requestBuilder.build();
 
@@ -181,7 +201,8 @@ public class HttpToolkits {
                         return Map.of("token", token, "username", username, "userId", userId);
                     }
                 } catch (Exception e) {
-                    System.err.println("[EasyCoder] -- HttpUtil.polling -- Fail to request server " + serverUrl + ": " + e.getMessage());
+                    System.err.println("[EasyCoder] -- HttpUtil.polling -- Fail to request server " + serverUrl + ": "
+                            + e.getMessage());
                 }
                 try {
                     Thread.sleep(1000);
@@ -196,6 +217,7 @@ public class HttpToolkits {
     /**
      * 1. 把消息传给 webview
      * 2. 全局记录 account 信息
+     * 
      * @param project
      * @param map
      * @return
