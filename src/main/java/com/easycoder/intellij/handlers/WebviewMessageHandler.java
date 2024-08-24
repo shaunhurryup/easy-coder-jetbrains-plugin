@@ -1,5 +1,6 @@
 package com.easycoder.intellij.handlers;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.easycoder.intellij.constant.HttpRequest;
 import com.easycoder.intellij.enums.MessageId;
 import com.easycoder.intellij.http.HttpToolkits;
@@ -124,10 +125,13 @@ public class WebviewMessageHandler {
         if (messageId.equals(MessageId.WebviewMount)) {
             String token = PropertiesComponent.getInstance().getValue("easycoder:token");
             String username = PropertiesComponent.getInstance().getValue("easycoder:username");
+            if (ObjectUtil.isEmpty(token) || ObjectUtil.isEmpty(username)) {
+                return null;
+            }
+
             JsonObject payload = new JsonObject();
             payload.addProperty("account", username);
             payload.addProperty("accessToken", token);
-
             WebviewMessage webviewMessage = WebviewMessage.builder()
                 .id(MessageId.SuccessfulAuth)
                 .payload(payload)

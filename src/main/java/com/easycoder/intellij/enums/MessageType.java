@@ -8,7 +8,6 @@ public enum MessageType {
     ExplainCode,
     GenerateComment,
     SendMessageFromE2P,
-    WebviewMount,
     RemoveSession,
     HttpGet,
     HttpPost,
