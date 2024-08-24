@@ -31,6 +31,11 @@ public class WebviewMessageHandler {
     public static WebviewMessage run(WebviewMessage message, Project project) {
         MessageId messageId = message.getId();
 
+        if (messageId.equals(MessageId.InsertIntoEditor)) {
+            String value = message.getPayload().get("value").getAsString();
+            insertText(project, value);
+        }
+
         if (messageId.equals(MessageId.GetHistoryDialogs)) {
             String modifiedStream = HttpToolkits.doHttpPost(message);
             sendHttpResponse2Webview(modifiedStream, messageId, project);
@@ -210,6 +215,18 @@ public class WebviewMessageHandler {
             Editor editor = fileEditorManager.getSelectedTextEditor();
             if (editor != null) {
                 editor.getSelectionModel().removeSelection();
+            }
+        });
+    }
+
+    static public void insertText(Project project, String text) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+            Editor editor = fileEditorManager.getSelectedTextEditor();
+            if (editor != null) {
+                WriteCommandAction.runWriteCommandAction(project, () -> {
+                    editor.getDocument().insertString(editor.getCaretModel().getOffset(), text);
+                });
             }
         });
     }

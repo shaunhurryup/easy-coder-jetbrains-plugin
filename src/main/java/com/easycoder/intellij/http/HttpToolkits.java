@@ -28,7 +28,7 @@ public class HttpToolkits {
     public static Runnable createEventSource(WebviewMessage message, Project project) {
         String route = message.getPayload().get("route").getAsString();
         Object body = message.getPayload().get("body");
-        String method = message.getPayload().get("method").getAsString();
+        String method = message.getPayload().get("method") != null ? message.getPayload().get("method").getAsString() : "POST";
 
         String token = PropertiesComponent.getInstance().getValue("easycoder:token");
         String url = baseURL + route;
