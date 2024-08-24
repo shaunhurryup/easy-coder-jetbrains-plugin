@@ -48,7 +48,12 @@ public class EasyCoderSettingsProvider implements EditorOptionsProvider {
                 || savedSettings.isCPURadioButtonEnabled() != settingsPanel.getCPUModelRadioButton()
                 || savedSettings.isGPURadioButtonEnabled() != settingsPanel.getGPUModelRadioButton()
                 || savedSettings.getCompletionMaxToken() != settingsPanel.getCompletionMaxTokens()
-                || savedSettings.getChatMaxToken() != settingsPanel.getChatMaxTokens();
+                || savedSettings.getChatMaxToken() != settingsPanel.getChatMaxTokens()
+                || !savedSettings.getServerAddressShaun().equals(settingsPanel.getServerAddressShaun())
+                || savedSettings.isEnableCodeCompletionShaun() != settingsPanel.getEnableCodeCompletionShaun()
+                || !savedSettings.getCodeCompletionLengthShaun().equals(settingsPanel.getCodeCompletionLengthShaun())
+                || !savedSettings.getCodeCompletionDelayShaun().equals(settingsPanel.getCodeCompletionDelayShaun())
+                || !savedSettings.getChatMaxTokensShaun().equals(settingsPanel.getChatMaxTokensShaun());
     }
 
     @Override
@@ -61,6 +66,11 @@ public class EasyCoderSettingsProvider implements EditorOptionsProvider {
         savedSettings.setTabActionOption(settingsPanel.getTabActionOption());
         savedSettings.setCompletionMaxToken(settingsPanel.getCompletionMaxTokens());
         savedSettings.setChatMaxToken(settingsPanel.getChatMaxTokens());
+        savedSettings.setServerAddressShaun(settingsPanel.getServerAddressShaun());
+        savedSettings.setEnableCodeCompletionShaun(settingsPanel.getEnableCodeCompletionShaun());
+        savedSettings.setCodeCompletionLengthShaun(settingsPanel.getCodeCompletionLengthShaun());
+        savedSettings.setCodeCompletionDelayShaun(settingsPanel.getCodeCompletionDelayShaun());
+        savedSettings.setChatMaxTokensShaun(settingsPanel.getChatMaxTokensShaun());
 
         for (Project openProject : ProjectManager.getInstance().getOpenProjects()) {
             WindowManager.getInstance().getStatusBar(openProject).updateWidget(EasyCoderWidget.ID);
@@ -91,5 +101,10 @@ public class EasyCoderSettingsProvider implements EditorOptionsProvider {
         settingsPanel.setGPUModelRadioButton(savedSettings.isGPURadioButtonEnabled());
         settingsPanel.setCompletionMaxTokens(savedSettings.getCompletionMaxToken());
         settingsPanel.setChatMaxTokens(savedSettings.getChatMaxToken());
+        settingsPanel.setServerAddressShaun(savedSettings.getServerAddressShaun());
+        settingsPanel.setEnableCodeCompletionShaun(savedSettings.isEnableCodeCompletionShaun());
+        settingsPanel.setCodeCompletionLengthShaun(savedSettings.getCodeCompletionLengthShaun());
+        settingsPanel.setCodeCompletionDelayShaun(savedSettings.getCodeCompletionDelayShaun());
+        settingsPanel.setChatMaxTokensShaun(savedSettings.getChatMaxTokensShaun());
     }
 }
