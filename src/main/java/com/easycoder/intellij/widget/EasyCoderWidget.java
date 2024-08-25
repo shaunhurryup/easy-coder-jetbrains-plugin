@@ -261,7 +261,9 @@ public class EasyCoderWidget extends EditorBasedWidget
         inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
 
         file.putUserData(SHELL_CODER_POSITION, currentPosition);
-        if(!enableSuggestion || currentPosition < lastPosition){
+        // fixed: 删除也要有代码补全
+        // if(!enableSuggestion || currentPosition < lastPosition){
+        if(!enableSuggestion){
             enableSuggestion = false;
             return;
         }
