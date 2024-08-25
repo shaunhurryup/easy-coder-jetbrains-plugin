@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.easycoder.intellij.constant.HttpRequest;
 import com.easycoder.intellij.enums.MessageId;
 import com.easycoder.intellij.http.HttpToolkits;
+import com.easycoder.intellij.listener.ThemeListener;
 import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.google.gson.Gson;
@@ -145,6 +146,7 @@ public class WebviewMessageHandler {
                 return null;
             }
 
+            // auth
             JsonObject payload = new JsonObject();
             payload.addProperty("account", username);
             payload.addProperty("accessToken", token);
@@ -154,6 +156,9 @@ public class WebviewMessageHandler {
                 .build();
             project.getService(EasyCoderSideWindowService.class)
                 .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
+
+            // theme
+            ThemeListener.sendThemeMessage();
         }
 
         if (messageId.equals(MessageId.ReplaceEditorText)) {

@@ -18,6 +18,10 @@ import java.awt.*;
 public class ThemeListener implements LafManagerListener {
     @Override
     public void lookAndFeelChanged(@NotNull LafManager source) {
+        sendThemeMessage();
+    }
+
+    static public void sendThemeMessage() {
         EditorColorsScheme currentScheme = EditorColorsManager.getInstance().getGlobalScheme();
         Color backgroundColor = currentScheme.getDefaultBackground();
 
@@ -33,14 +37,15 @@ public class ThemeListener implements LafManagerListener {
                 .payload(payload)
                 .build();
 
-        // 发送消息到 webview
-        Project[] projects = ProjectManager.getInstance().getOpenProjects();
-        for (Project project : projects) {
-            EasyCoderSideWindowService service = project.getService(EasyCoderSideWindowService.class);
-            if (service != null) {
-                service.notifyIdeAppInstance(webviewMessage);
+        ApplicationManager.getApplication().invokeLater(() -> {
+            Project[] projects = ProjectManager.getInstance().getOpenProjects();
+            for (Project project : projects) {
+                EasyCoderSideWindowService service = project.getService(EasyCoderSideWindowService.class);
+                if (service != null) {
+                    service.notifyIdeAppInstance(webviewMessage);
+                }
             }
-        }
+        });
     }
 
     public static void initialize() {
