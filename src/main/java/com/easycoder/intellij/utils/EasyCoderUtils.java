@@ -118,8 +118,8 @@ public class EasyCoderUtils {
                 return;
             }
 
-            file.putUserData(EasyCoderWidget.SHELL_CODER_CODE_SUGGESTION, hintList);
-            file.putUserData(EasyCoderWidget.SHELL_CODER_POSITION, suggestionPosition);
+            file.putUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION, hintList);
+            file.putUserData(EasyCoderWidget.EASY_CODER_POSITION, suggestionPosition);
 
             InlayModel inlayModel = focusedEditor.getInlayModel();
             inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);

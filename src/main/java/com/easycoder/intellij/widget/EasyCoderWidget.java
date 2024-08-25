@@ -43,8 +43,8 @@ public class EasyCoderWidget extends EditorBasedWidget
         CaretListener, SelectionListener, BulkAwareDocumentListener.Simple, PropertyChangeListener {
     public static final String ID = "EasyCoderWidget";
 
-    public static final Key<String[]> SHELL_CODER_CODE_SUGGESTION = new Key<>("EasyCoder Code Suggestion");
-    public static final Key<Integer> SHELL_CODER_POSITION = new Key<>("EasyCoder Position");
+    public static final Key<String[]> EASY_CODER_CODE_SUGGESTION = new Key<>("EasyCoder Code Suggestion");
+    public static final Key<Integer> EASY_CODER_POSITION = new Key<>("EasyCoder Position");
     public static boolean enableSuggestion = false;
     private final TextPanel.WithIconAndArrows panel = new TextPanel.WithIconAndArrows();
 
@@ -208,10 +208,10 @@ public class EasyCoderWidget extends EditorBasedWidget
 
         String selection = focusedEditor.getCaretModel().getCurrentCaret().getSelectedText();
         if (Objects.nonNull(selection) && !selection.isEmpty()) {
-            String[] existingHints = file.getUserData(SHELL_CODER_CODE_SUGGESTION);
+            String[] existingHints = file.getUserData(EASY_CODER_CODE_SUGGESTION);
             if (Objects.nonNull(existingHints) && existingHints.length > 0) {
-                file.putUserData(SHELL_CODER_CODE_SUGGESTION, null);
-                file.putUserData(SHELL_CODER_POSITION, focusedEditor.getCaretModel().getOffset());
+                file.putUserData(EASY_CODER_CODE_SUGGESTION, null);
+                file.putUserData(EASY_CODER_POSITION, focusedEditor.getCaretModel().getOffset());
 
                 InlayModel inlayModel = focusedEditor.getInlayModel();
                 inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
@@ -220,7 +220,7 @@ public class EasyCoderWidget extends EditorBasedWidget
             return;
         }
 
-        Integer easyCoderPos = file.getUserData(SHELL_CODER_POSITION);
+        Integer easyCoderPos = file.getUserData(EASY_CODER_POSITION);
         int lastPosition = (Objects.isNull(easyCoderPos)) ? 0 : easyCoderPos;
         int currentPosition = focusedEditor.getCaretModel().getOffset();
 
@@ -228,7 +228,7 @@ public class EasyCoderWidget extends EditorBasedWidget
 
         InlayModel inlayModel = focusedEditor.getInlayModel();
         if (currentPosition > lastPosition) {
-            String[] existingHints = file.getUserData(SHELL_CODER_CODE_SUGGESTION);
+            String[] existingHints = file.getUserData(EASY_CODER_CODE_SUGGESTION);
             if (Objects.nonNull(existingHints) && existingHints.length > 0) {
                 String inlineHint = existingHints[0];
                 String modifiedText = focusedEditor.getDocument().getCharsSequence().subSequence(lastPosition, currentPosition).toString();
@@ -243,15 +243,15 @@ public class EasyCoderWidget extends EditorBasedWidget
                         inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
                         existingHints[0] = inlineHint;
 
-                        file.putUserData(SHELL_CODER_CODE_SUGGESTION, existingHints);
-                        file.putUserData(SHELL_CODER_POSITION, currentPosition);
+                        file.putUserData(EASY_CODER_CODE_SUGGESTION, existingHints);
+                        file.putUserData(EASY_CODER_POSITION, currentPosition);
                         return;
                     } else if (existingHints.length > 1) {
                         existingHints = Arrays.copyOfRange(existingHints, 1, existingHints.length);
                         EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, existingHints);
                         return;
                     } else {
-                        file.putUserData(SHELL_CODER_CODE_SUGGESTION, null);
+                        file.putUserData(EASY_CODER_CODE_SUGGESTION, null);
                     }
                 }
             }
@@ -260,7 +260,7 @@ public class EasyCoderWidget extends EditorBasedWidget
         inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
         inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
 
-        file.putUserData(SHELL_CODER_POSITION, currentPosition);
+        file.putUserData(EASY_CODER_POSITION, currentPosition);
         // fixed: 删除也要有代码补全
         // if(!enableSuggestion || currentPosition < lastPosition){
         if(!enableSuggestion){
