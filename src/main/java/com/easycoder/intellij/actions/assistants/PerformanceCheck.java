@@ -80,7 +80,7 @@ public class PerformanceCheck extends DumbAwareAction implements IntentionAction
                     .payload(payload)
                     .build();
 
-            project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new Gson().toJson(request));
+            project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(request);
         }, ModalityState.NON_MODAL);
     }
 }
