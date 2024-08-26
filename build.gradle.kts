@@ -41,6 +41,6 @@ tasks {
     }
 
     publishPlugin {
-        token.set(project.findProperty("intellijPublishToken").toString())
+        token.set(System.getenv("EASY_CODER_PUBLISH_TOKEN"))
     }
 }
