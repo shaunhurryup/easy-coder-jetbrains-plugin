@@ -37,7 +37,12 @@ public class WebviewMessageHandler {
             insertText(project, value);
         }
 
-        if (messageId.equals(MessageId.GetHistoryDialogs)) {
+        if (
+                messageId.equals(MessageId.GetHistoryDialogs) ||
+                messageId.equals(MessageId.GetKnowledgeHistoryDialogs) ||
+                messageId.equals(MessageId.GetKnowledgeRepoList) ||
+                messageId.equals(MessageId.KnowledgeReactOnQaResponse)
+        ) {
             String modifiedStream = HttpToolkits.doHttpPost(message);
             sendHttpResponse2Webview(modifiedStream, messageId, project);
         }
@@ -86,6 +91,7 @@ public class WebviewMessageHandler {
 
         if (
             messageId.equals(MessageId.WebviewQuestion) ||
+            messageId.equals(MessageId.KnowledgeWebviewQuestion) ||
             messageId.equals(MessageId.GenerateComment_Menu) ||
             messageId.equals(MessageId.ReGenerateAnswer) ||
             messageId.equals(MessageId.WebviewCodeTranslation)
@@ -94,7 +100,10 @@ public class WebviewMessageHandler {
             lastAbortFunction.set(abortFunction);
         }
 
-        if (messageId.equals(MessageId.WebviewAbortQa)) {
+        if (
+            messageId.equals(MessageId.WebviewAbortQa) ||
+            messageId.equals(MessageId.KnowledgeWebviewAbortQa)
+        ) {
             Runnable abortFunction = lastAbortFunction.getAndSet(null);
             if (abortFunction != null) {
                 abortFunction.run();
@@ -134,7 +143,13 @@ public class WebviewMessageHandler {
             }
         }
 
-        if (messageId.equals(MessageId.WebviewInitQaExamples) || messageId.equals(MessageId.GetHistoryDialogDetail) || messageId.equals(MessageId.RemoveDialog32)) {
+        if (
+                messageId.equals(MessageId.WebviewInitQaExamples) ||
+                messageId.equals(MessageId.GetHistoryDialogDetail) ||
+                messageId.equals(MessageId.RemoveDialog32) ||
+                messageId.equals(MessageId.GetKnowledgeHistoryDialogDetail) ||
+                messageId.equals(MessageId.RemoveKnowledgeDialog32)
+        ) {
             String modifiedStream = HttpToolkits.doHttpGet(message);
             sendHttpResponse2Webview(modifiedStream, messageId, project);
         }
