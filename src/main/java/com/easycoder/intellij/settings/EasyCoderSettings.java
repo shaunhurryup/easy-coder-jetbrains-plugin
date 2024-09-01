@@ -44,7 +44,7 @@ public class EasyCoderSettings implements PersistentStateComponent<Element> {
     private CodeCompletionDelayShaun codeCompletionDelayShaun = CodeCompletionDelayShaun.DELAY_500;
     private ChatMaxTokensShaun chatMaxTokensShaun = ChatMaxTokensShaun.TOKEN_1024;
 
-    private static final EasyCoderSettings SHELL_CODER_SETTINGS_INSTANCE = new EasyCoderSettings();
+    private static final EasyCoderSettings EASY_CODER_SETTINGS_INSTANCE = new EasyCoderSettings();
 
     @Override
     public @Nullable Element getState() {
@@ -106,12 +106,12 @@ public class EasyCoderSettings implements PersistentStateComponent<Element> {
 
     public static EasyCoderSettings getInstance() {
         if (Objects.isNull(ApplicationManager.getApplication())) {
-            return SHELL_CODER_SETTINGS_INSTANCE;
+            return EASY_CODER_SETTINGS_INSTANCE;
         }
 
         EasyCoderSettings service = ApplicationManager.getApplication().getService(EasyCoderSettings.class);
         if (Objects.isNull(service)) {
-            return SHELL_CODER_SETTINGS_INSTANCE;
+            return EASY_CODER_SETTINGS_INSTANCE;
         }
         return service;
     }

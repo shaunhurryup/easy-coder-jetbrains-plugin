@@ -99,10 +99,10 @@ public class CodeTriggerCompletionAction extends DumbAwareAction implements Inte
 
         String selection = focusedEditor.getCaretModel().getCurrentCaret().getSelectedText();
         if (Objects.nonNull(selection) && !selection.isEmpty()) {
-            String[] existingHints = file.getUserData(EasyCoderWidget.SHELL_CODER_CODE_SUGGESTION);
+            String[] existingHints = file.getUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION);
             if (Objects.nonNull(existingHints) && existingHints.length > 0) {
-                file.putUserData(EasyCoderWidget.SHELL_CODER_CODE_SUGGESTION, null);
-                file.putUserData(EasyCoderWidget.SHELL_CODER_POSITION, focusedEditor.getCaretModel().getOffset());
+                file.putUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION, null);
+                file.putUserData(EasyCoderWidget.EASY_CODER_POSITION, focusedEditor.getCaretModel().getOffset());
 
                 InlayModel inlayModel = focusedEditor.getInlayModel();
                 inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
@@ -111,13 +111,13 @@ public class CodeTriggerCompletionAction extends DumbAwareAction implements Inte
             return;
         }
 
-        Integer easyCoderPos = file.getUserData(EasyCoderWidget.SHELL_CODER_POSITION);
+        Integer easyCoderPos = file.getUserData(EasyCoderWidget.EASY_CODER_POSITION);
         int currentPosition = focusedEditor.getCaretModel().getOffset();
 
         InlayModel inlayModel = focusedEditor.getInlayModel();
         inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
         inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-        file.putUserData(EasyCoderWidget.SHELL_CODER_POSITION, currentPosition);
+        file.putUserData(EasyCoderWidget.EASY_CODER_POSITION, currentPosition);
         EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
         CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
         CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition));

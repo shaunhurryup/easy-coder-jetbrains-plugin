@@ -32,7 +32,7 @@ public class CodeGenInsertAllAction extends AnAction {
             return;
         }
 
-        String[] hints = file.getUserData(EasyCoderWidget.SHELL_CODER_CODE_SUGGESTION);
+        String[] hints = file.getUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION);
         e.getPresentation().setEnabledAndVisible(Objects.nonNull(hints) && hints.length > 0);
     }
 
@@ -41,12 +41,12 @@ public class CodeGenInsertAllAction extends AnAction {
             return false;
         }
 
-        String[] hints = file.getUserData(EasyCoderWidget.SHELL_CODER_CODE_SUGGESTION);
+        String[] hints = file.getUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION);
         if (Objects.isNull(hints) || (hints.length == 0)) {
             return false;
         }
 
-        Integer position = file.getUserData(EasyCoderWidget.SHELL_CODER_POSITION);
+        Integer position = file.getUserData(EasyCoderWidget.EASY_CODER_POSITION);
         int lastPosition = Objects.isNull(position) ? 0 : position;
         if (Objects.isNull(caret) || (caret.getOffset() != lastPosition)) {
             return false;
@@ -54,7 +54,7 @@ public class CodeGenInsertAllAction extends AnAction {
 
         StringJoiner insertTextJoiner = new StringJoiner("");
         Arrays.stream(hints).forEach(insertTextJoiner::add);
-        file.putUserData(EasyCoderWidget.SHELL_CODER_CODE_SUGGESTION, null);
+        file.putUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION, null);
 
         String insertText = insertTextJoiner.toString();
         WriteCommandAction.runWriteCommandAction(editor.getProject(), "EasyCoder Insert", null, () -> {
