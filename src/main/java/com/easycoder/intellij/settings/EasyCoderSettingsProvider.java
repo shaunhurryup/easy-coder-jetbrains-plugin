@@ -42,14 +42,7 @@ public class EasyCoderSettingsProvider implements EditorOptionsProvider {
     @Override
     public boolean isModified() {
         EasyCoderSettings savedSettings = EasyCoderSettings.getInstance();
-        return !savedSettings.getServerAddressURL().equals(settingsPanel.getServerAddressUrl())
-                || savedSettings.getTabActionOption() != settingsPanel.getTabActionOption()
-                || savedSettings.isSaytEnabled() != settingsPanel.getEnableSAYTCheckBox()
-                || savedSettings.isCPURadioButtonEnabled() != settingsPanel.getCPUModelRadioButton()
-                || savedSettings.isGPURadioButtonEnabled() != settingsPanel.getGPUModelRadioButton()
-                || savedSettings.getCompletionMaxToken() != settingsPanel.getCompletionMaxTokens()
-                || savedSettings.getChatMaxToken() != settingsPanel.getChatMaxTokens()
-                || !savedSettings.getServerAddressShaun().equals(settingsPanel.getServerAddressShaun())
+        return !savedSettings.getServerAddressShaun().equals(settingsPanel.getServerAddressShaun())
                 || savedSettings.isEnableCodeCompletionShaun() != settingsPanel.getEnableCodeCompletionShaun()
                 || !savedSettings.getCodeCompletionLengthShaun().equals(settingsPanel.getCodeCompletionLengthShaun())
                 || !savedSettings.getCodeCompletionDelayShaun().equals(settingsPanel.getCodeCompletionDelayShaun())
@@ -59,13 +52,6 @@ public class EasyCoderSettingsProvider implements EditorOptionsProvider {
     @Override
     public void apply() {
         EasyCoderSettings savedSettings = EasyCoderSettings.getInstance();
-        savedSettings.setServerAddressURL(settingsPanel.getServerAddressUrl());
-        savedSettings.setSaytEnabled(settingsPanel.getEnableSAYTCheckBox());
-        savedSettings.setCPURadioButtonEnabled(settingsPanel.getCPUModelRadioButton());
-        savedSettings.setGPURadioButtonEnabled(settingsPanel.getGPUModelRadioButton());
-        savedSettings.setTabActionOption(settingsPanel.getTabActionOption());
-        savedSettings.setCompletionMaxToken(settingsPanel.getCompletionMaxTokens());
-        savedSettings.setChatMaxToken(settingsPanel.getChatMaxTokens());
         savedSettings.setServerAddressShaun(settingsPanel.getServerAddressShaun());
         savedSettings.setEnableCodeCompletionShaun(settingsPanel.getEnableCodeCompletionShaun());
         savedSettings.setCodeCompletionLengthShaun(settingsPanel.getCodeCompletionLengthShaun());
@@ -94,13 +80,6 @@ public class EasyCoderSettingsProvider implements EditorOptionsProvider {
     @Override
     public void reset() {
         EasyCoderSettings savedSettings = EasyCoderSettings.getInstance();
-        settingsPanel.setServerAddressUrl(savedSettings.getServerAddressURL());
-        settingsPanel.setEnableSAYTCheckBox(savedSettings.isSaytEnabled());
-        settingsPanel.setTabActionOption(savedSettings.getTabActionOption());
-        settingsPanel.setCPUModelRadioButton(savedSettings.isCPURadioButtonEnabled());
-        settingsPanel.setGPUModelRadioButton(savedSettings.isGPURadioButtonEnabled());
-        settingsPanel.setCompletionMaxTokens(savedSettings.getCompletionMaxToken());
-        settingsPanel.setChatMaxTokens(savedSettings.getChatMaxToken());
         settingsPanel.setServerAddressShaun(savedSettings.getServerAddressShaun());
         settingsPanel.setEnableCodeCompletionShaun(savedSettings.isEnableCodeCompletionShaun());
         settingsPanel.setCodeCompletionLengthShaun(savedSettings.getCodeCompletionLengthShaun());
