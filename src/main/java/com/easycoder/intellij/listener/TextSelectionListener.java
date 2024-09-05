@@ -42,7 +42,7 @@ public class TextSelectionListener implements SelectionListener {
             String selectedText = selectionModel.getSelectedText();
 
             JsonObject payload = new JsonObject();
-            payload.addProperty("value", selectedText);
+            payload.addProperty("value", selectedText == null ? "" : selectedText);
             WebviewMessage webviewMessage = WebviewMessage.builder()
                 .id(MessageId.SetSelectedText)
                 .payload(payload)
