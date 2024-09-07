@@ -2,8 +2,8 @@ package com.easycoder.intellij.enums;
 
 public enum CodeCompletionLengthShaun {
     AUTO("Auto"),
-    ONE_LINE("One Line"),
-    MULTI_LINE("Multi Line");
+    ONE_LINE("One-line"),
+    MULTI_LINE("Multi-line");
 
     private final String description;
 
@@ -13,6 +13,10 @@ public enum CodeCompletionLengthShaun {
 
     public String getDescription() {
         return description;
+    }
+
+    public int getValue() {
+        return this.ordinal(); // Returns the ordinal value of the enum
     }
 
     @Override

@@ -44,6 +44,8 @@ public class EasyCoderCompleteService {
         }
         GlobalStore.loading = true;
 
+        long startTime = System.currentTimeMillis(); // Start timing
+        System.out.println("=== completion start === ");
 
         String apiURL = "http://easycoder.puhuacloud.com/api/easycoder-api/app/session/completions";
         HttpPost httpPost = new HttpPost(apiURL);
@@ -53,7 +55,7 @@ public class EasyCoderCompleteService {
         JsonObject body = new JsonObject();
         body.addProperty("prefix", prefix);
         body.addProperty("suffix", suffix);
-        body.addProperty("rows", 0);
+        body.addProperty("rows", settings.getCodeCompletionLengthShaun().getValue()); // Get rows value from settings
         StringEntity requestEntity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
         httpPost.setEntity(requestEntity);
 
@@ -87,6 +89,9 @@ public class EasyCoderCompleteService {
         } catch (InterruptedException | ExecutionException e) {
             return "";
         } finally {
+            long endTime = System.currentTimeMillis(); // End timing
+            long duration = endTime - startTime; // Calculate duration
+            System.out.println("fetch ghost text duration: " + duration + " ms"); // Log duration
             GlobalStore.loading = false;
         }
     }
