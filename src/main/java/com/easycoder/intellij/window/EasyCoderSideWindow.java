@@ -93,7 +93,7 @@ public class EasyCoderSideWindow {
                 // extension -> webview
                 return null;
             } catch (Exception e) {
-                logger.warn("JBCefJSQuery error", e);
+                System.out.println("JBCefJSQuery error: " + e);
                 return new JBCefJSQuery.Response(null, 0, "errorMsg");
             }
         });

@@ -143,9 +143,14 @@ public class WebviewMessageHandler {
         }
 
         if (messageId.equals(MessageId.WebviewMount)) {
+            // language
+            project.getService(EasyCoderSideWindowService.class)
+                .notifyIdeAppInstance(new Gson().toJson(EasyCoderSettings.getInstance().getSettings()));
+
             String token = PropertiesComponent.getInstance().getValue("easycoder:token");
             String username = PropertiesComponent.getInstance().getValue("easycoder:username");
             if (ObjectUtil.isEmpty(token) || ObjectUtil.isEmpty(username)) {
+                System.out.println("[WARN] token or username is empty");
                 return null;
             }
 
@@ -158,7 +163,7 @@ public class WebviewMessageHandler {
                 .payload(payload)
                 .build();
             project.getService(EasyCoderSideWindowService.class)
-                .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
+                .notifyIdeAppInstance(webviewMessage);
 
             // theme
             ThemeListener.sendThemeMessage();

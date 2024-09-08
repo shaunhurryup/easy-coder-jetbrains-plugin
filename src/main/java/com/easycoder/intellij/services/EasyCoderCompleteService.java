@@ -1,12 +1,9 @@
 package com.easycoder.intellij.services;
 
-import com.easycoder.intellij.handlers.GlobalStore;
-import com.easycoder.intellij.settings.EasyCoderSettings;
-import com.easycoder.intellij.utils.EasyCoderUtils;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -17,9 +14,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import com.easycoder.intellij.handlers.GlobalStore;
+import com.easycoder.intellij.settings.EasyCoderSettings;
+import com.easycoder.intellij.utils.EasyCoderUtils;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.intellij.ide.util.PropertiesComponent;
 
 public class EasyCoderCompleteService {
 
@@ -44,10 +44,10 @@ public class EasyCoderCompleteService {
         }
         GlobalStore.loading = true;
 
-        long startTime = System.currentTimeMillis(); // Start timing
+        long startTime = System.currentTimeMillis();
         System.out.println("=== completion start === ");
-
-        String apiURL = "http://easycoder.puhuacloud.com/api/easycoder-api/app/session/completions";
+        String serverAddress = EasyCoderSettings.getInstance().getServerAddressShaun();
+        String apiURL = serverAddress + "/api/easycoder-api/app/session/completions";
         HttpPost httpPost = new HttpPost(apiURL);
 
         httpPost.setHeader("Content-Type", "application/json");

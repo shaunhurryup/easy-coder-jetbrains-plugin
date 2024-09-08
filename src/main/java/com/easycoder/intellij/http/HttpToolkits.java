@@ -1,17 +1,5 @@
 package com.easycoder.intellij.http;
 
-import cn.hutool.http.HttpUtil;
-import cn.hutool.json.JSONObject;
-import com.easycoder.intellij.enums.MessageId;
-import com.easycoder.intellij.enums.MessageType;
-import com.easycoder.intellij.enums.ServiceRoute;
-import com.easycoder.intellij.model.WebviewMessage;
-import com.easycoder.intellij.services.EasyCoderSideWindowService;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.project.Project;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -22,16 +10,32 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static com.easycoder.intellij.constant.HttpRequest.baseURL;
+import com.easycoder.intellij.enums.MessageId;
+import com.easycoder.intellij.enums.MessageType;
+import com.easycoder.intellij.enums.ServiceRoute;
+import com.easycoder.intellij.model.WebviewMessage;
+import com.easycoder.intellij.services.EasyCoderSideWindowService;
+import com.easycoder.intellij.settings.EasyCoderSettings;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.project.Project;
+
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONObject;
 
 public class HttpToolkits {
+    public static String getBaseURL() {
+        return EasyCoderSettings.getInstance().getServerAddressShaun();
+    }
+
     public static Runnable createEventSource(WebviewMessage message, Project project) {
         String route = message.getPayload().get("route").getAsString();
         Object body = message.getPayload().get("body");
         String method = message.getPayload().get("method") != null ? message.getPayload().get("method").getAsString() : "POST";
 
         String token = PropertiesComponent.getInstance().getValue("easycoder:token");
-        String url = baseURL + route;
+        String url = getBaseURL() + route;
 
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
@@ -126,7 +130,7 @@ public class HttpToolkits {
         HttpClient client = HttpClient.newHttpClient();
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                .uri(URI.create(baseURL + route))
+                .uri(URI.create(getBaseURL() + route))
                 .GET();
 
         // 添加 headers
@@ -134,7 +138,7 @@ public class HttpToolkits {
 
         HttpRequest request = requestBuilder.build();
 
-        System.out.println("[EasyCoder] -- HttpUtil.doHttpGet -- url: " + baseURL + route);
+        System.out.println("[EasyCoder] -- HttpUtil.doHttpGet -- url: " + getBaseURL() + route);
 
         try {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -160,14 +164,14 @@ public class HttpToolkits {
         HttpClient client = HttpClient.newHttpClient();
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                .uri(URI.create(baseURL + route))
+                .uri(URI.create(getBaseURL() + route))
                 .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                 .header("Content-Type", "application/json")
                 .header("token", token);
 
         HttpRequest request = requestBuilder.build();
 
-        System.out.println("[EasyCoder] -- HttpUtil.doHttpPost -- url: " + baseURL + route);
+        System.out.println("[EasyCoder] -- HttpUtil.doHttpPost -- url: " + getBaseURL() + route);
         System.out.println("[EasyCoder] -- HttpUtil.doHttpPost -- body: " + body);
 
         try {
@@ -184,7 +188,8 @@ public class HttpToolkits {
 
     static public CompletableFuture<Map<String, String>> fetchToken(String uuid) {
         return CompletableFuture.supplyAsync(() -> {
-            String serverUrl = "http://easycoder.puhuacloud.com/api/easycoder-api/app/user/getToken/" + uuid;
+            String serverAddress = EasyCoderSettings.getInstance().getServerAddressShaun();
+            String serverUrl = serverAddress + "/api/easycoder-api/app/user/getToken/" + uuid;
             int rest = 60;
             while (rest-- > 0) {
                 try {

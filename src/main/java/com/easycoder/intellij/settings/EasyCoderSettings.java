@@ -11,7 +11,11 @@ import com.easycoder.intellij.enums.ChatMaxTokensShaun;
 import com.easycoder.intellij.enums.CodeCompletionDelayShaun;
 import com.easycoder.intellij.enums.CodeCompletionLengthShaun;
 import com.easycoder.intellij.enums.CompletionMaxToken;
+import com.easycoder.intellij.enums.MessageId;
 import com.easycoder.intellij.enums.TabActionOption;
+import com.easycoder.intellij.model.WebviewMessage;
+import com.google.gson.JsonObject;
+import com.intellij.DynamicBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -63,6 +67,22 @@ public class EasyCoderSettings implements PersistentStateComponent<Element> {
         state.setAttribute(CODE_COMPLETION_DELAY_TAG, getCodeCompletionDelayShaun().name());
         state.setAttribute(CHAT_MAX_TOKENS_DROPDOWN_TAG, getChatMaxTokensShaun().name());
         return state;
+    }
+
+    public WebviewMessage getSettings() {
+        JsonObject payload = new JsonObject();
+        payload.addProperty("ServerAddress", getServerAddressShaun());
+        payload.addProperty("AutoTriggerCompletion", isEnableCodeCompletionShaun());
+        payload.addProperty("AutoCompletionDelay", getCodeCompletionDelayShaun().getDescription());
+        payload.addProperty("CompletionLength", getCodeCompletionLengthShaun().getDescription());
+        payload.addProperty("ChatMaxTokens", getChatMaxTokensShaun().getDescription());
+        String language = DynamicBundle.getLocale().toLanguageTag().toLowerCase();
+        
+        payload.addProperty("Language", language);
+        return WebviewMessage.builder()
+            .id(MessageId.GetExtensionSettings)
+            .payload(payload)
+            .build();
     }
 
     @Override
