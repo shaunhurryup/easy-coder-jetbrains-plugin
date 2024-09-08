@@ -39,6 +39,7 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
     @Override
     protected WidgetState getWidgetState(@Nullable VirtualFile virtualFile) {
         boolean loading = GlobalStore.loading;
+        System.out.println("globalStore: " + GlobalStore.status + GlobalStore.text + GlobalStore.tooltip);
         return new WidgetState("This is tooltip", loading ? "Loading..." : "EasyCoder", true);
     }
 

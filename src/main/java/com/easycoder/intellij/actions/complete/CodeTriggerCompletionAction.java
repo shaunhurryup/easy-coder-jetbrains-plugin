@@ -1,12 +1,14 @@
 package com.easycoder.intellij.actions.complete;
 
 import com.easycoder.intellij.services.EasyCoderCompleteService;
+import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderUtils;
 import com.easycoder.intellij.utils.EditorUtils;
 import com.easycoder.intellij.widget.EasyCoderWidget;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.codeInspection.util.IntentionName;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
@@ -19,10 +21,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
+
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public class CodeTriggerCompletionAction extends DumbAwareAction implements IntentionAction {
 
@@ -61,35 +66,13 @@ public class CodeTriggerCompletionAction extends DumbAwareAction implements Inte
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-        updateInlayHints(editor);
-//        Project project = e.getData(LangDataKeys.PROJECT);
-//        if (Objects.isNull(project)) {
-//            return;
-//        }
-//        ApplicationManager.getApplication().invokeLater(() -> {
-//            VirtualFile vf = e.getRequiredData(CommonDataKeys.VIRTUAL_FILE);
-//            Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-//            if (EditorUtils.isNoneTextSelected(editor)) {
-//                return;
-//            }
-//            PsiFile psiFile = e.getRequiredData(CommonDataKeys.PSI_FILE);
-//            JsonObject jsonObject = EditorUtils.getFileSelectionDetails(editor, psiFile, true, PrefixString.CLEAN_CODE);
-//            JsonObject result = new JsonObject();
-//            ToolWindowManager tool = ToolWindowManager.getInstance(project);
-//            Objects.requireNonNull(tool.getToolWindow("EasyCoder")).activate(() -> {
-//                if(logger.isDebugEnabled()){
-//                    logger.debug("******************* CleanCode Enabled EasyCoder window *******************");
-//                }
-//            }, true, true);
-//            jsonObject.addProperty("fileName", vf.getName());
-//            jsonObject.addProperty("filePath", vf.getCanonicalPath());
-//            result.addProperty("data", jsonObject.toString());
-//            (project.getService(EasyCoderSideWindowService.class)).notifyIdeAppInstance(result);
-//        }, ModalityState.NON_MODAL);
+        CompletableFuture.delayedExecutor(EasyCoderSettings.getInstance().getCodeCompletionDelayShaun().getValue(), TimeUnit.MILLISECONDS).execute(() -> updateInlayHints(editor));
     }
 
     private void updateInlayHints(Editor focusedEditor) {
-        if (Objects.isNull(focusedEditor) || !EditorUtils.isMainEditor(focusedEditor)) {
+        boolean enableCodeCompletionShaun = EasyCoderSettings.getInstance().isEnableCodeCompletionShaun();
+        String token = PropertiesComponent.getInstance().getValue("easycoder:token");
+        if (StringUtils.isBlank(token) || !enableCodeCompletionShaun || Objects.isNull(focusedEditor) || !EditorUtils.isMainEditor(focusedEditor)) {
             return;
         }
         VirtualFile file = FileDocumentManager.getInstance().getFile(focusedEditor.getDocument());
