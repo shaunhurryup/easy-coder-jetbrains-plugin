@@ -1,12 +1,17 @@
 package com.easycoder.intellij.handlers;
 
-import cn.hutool.core.util.ObjectUtil;
-import com.easycoder.intellij.constant.HttpRequest;
+import java.awt.datatransfer.StringSelection;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+
 import com.easycoder.intellij.enums.MessageId;
 import com.easycoder.intellij.http.HttpToolkits;
 import com.easycoder.intellij.listener.ThemeListener;
 import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
+import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.ide.BrowserUtil;
@@ -20,11 +25,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 
-import java.awt.datatransfer.StringSelection;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
+import cn.hutool.core.util.ObjectUtil;
 
 public class WebviewMessageHandler {
     private static final AtomicReference<Runnable> lastAbortFunction = new AtomicReference<>();
@@ -102,36 +103,38 @@ public class WebviewMessageHandler {
         }
 
         if (messageId.equals(MessageId.OpenSignInWebpage)) {
-            try {
-                String uuid = UUID.randomUUID().toString();
-                String targetUrl = HttpRequest.baseURL + "?sessionId=" + uuid;
-                BrowserUtil.browse(targetUrl);
-                CompletableFuture<Map<String, String>> pollingFuture = HttpToolkits.fetchToken(uuid);
-                Map<String, String> data = pollingFuture.get(); // This will block until the polling is done
+            ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                try {
+                    String uuid = UUID.randomUUID().toString();
+                    String targetUrl = EasyCoderSettings.getInstance().getServerAddressShaun() + "?sessionId=" + uuid;
+                    BrowserUtil.browse(targetUrl);
+                    CompletableFuture<Map<String, String>> pollingFuture = HttpToolkits.fetchToken(uuid);
+                    Map<String, String> data = pollingFuture.get();
 
-                // 4) Update accounts
-                if (data == null) {
-                    System.err.println("[EasyCoder]");
-                    return null;
+                    // 4) Update accounts
+                    if (data == null) {
+                        System.err.println("[EasyCoder]");
+                        return;
+                    }
+
+                    PropertiesComponent.getInstance().setValue("easycoder:token", data.get("token"));
+                    PropertiesComponent.getInstance().setValue("easycoder:username", data.get("username"));
+                    PropertiesComponent.getInstance().setValue("easycoder:userId", data.get("userId"));
+
+                    JsonObject payload = new JsonObject();
+                    payload.addProperty("account", data.get("username"));
+                    payload.addProperty("accessToken", data.get("token"));
+
+                    WebviewMessage webviewMessage = WebviewMessage.builder()
+                        .id(MessageId.SuccessfulAuth)
+                        .payload(payload)
+                        .build();
+                    project.getService(EasyCoderSideWindowService.class)
+                        .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-
-                PropertiesComponent.getInstance().setValue("easycoder:token", data.get("token"));
-                PropertiesComponent.getInstance().setValue("easycoder:username", data.get("username"));
-                PropertiesComponent.getInstance().setValue("easycoder:userId", data.get("userId"));
-
-                JsonObject payload = new JsonObject();
-                payload.addProperty("account", data.get("username"));
-                payload.addProperty("accessToken", data.get("token"));
-
-                WebviewMessage webviewMessage = WebviewMessage.builder()
-                    .id(MessageId.SuccessfulAuth)
-                    .payload(payload)
-                    .build();
-                project.getService(EasyCoderSideWindowService.class)
-                    .notifyIdeAppInstance(new Gson().toJson(webviewMessage));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            });
         }
 
         if (messageId.equals(MessageId.WebviewInitQaExamples) || messageId.equals(MessageId.GetHistoryDialogDetail) || messageId.equals(MessageId.RemoveDialog32)) {

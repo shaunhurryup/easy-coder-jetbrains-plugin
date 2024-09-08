@@ -1,8 +1,18 @@
 package com.easycoder.intellij.widget;
 
+import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.easycoder.intellij.constant.Const;
 import com.easycoder.intellij.handlers.GlobalStore;
 import com.easycoder.intellij.http.HttpToolkits;
+import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -15,14 +25,6 @@ import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.StatusBarWidget;
 import com.intellij.openapi.wm.impl.status.EditorBasedStatusBarPopup;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Arrays;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public class StatusPopup extends EditorBasedStatusBarPopup {
     private Project project;
@@ -49,11 +51,11 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
             @Override
             public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
                 if (Const.LOGIN_IN.equals(selectedValue)) {
-                    openWebpage();
+                    ApplicationManager.getApplication().executeOnPooledThread(() -> openWebpage());
                 } else if (Const.LOGIN_OUT.equals(selectedValue)) {
                     HttpToolkits.signOut(project);
                 }
-                ApplicationManager.getApplication().invokeLater(() -> update());  // 在主线程中更新状态栏组件
+                ApplicationManager.getApplication().invokeLater(() -> update());
                 return FINAL_CHOICE;
             }
         };
@@ -63,10 +65,10 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
 
     private void openWebpage() {
         String uuid = UUID.randomUUID().toString();
-        String targetUrl = Const.WEBSITE + "?sessionId=" + uuid;
+        
+        String serverAddress = EasyCoderSettings.getInstance().getServerAddressShaun();
+        String targetUrl = serverAddress + "?sessionId=" + uuid;
         BrowserUtil.browse(targetUrl);
-
-        ApplicationManager.getApplication().invokeLater(() -> update());  // 在主线程中更新状态栏组件
 
         CompletableFuture<Map<String, String>> future = HttpToolkits.fetchToken(uuid);
         future.whenComplete((map, throwable) -> {
@@ -75,7 +77,7 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
                     HttpToolkits.signIn(project, map);
                 }
             } finally {
-                ApplicationManager.getApplication().invokeLater(() -> update());  // 在主线程中更新状态栏组件
+                ApplicationManager.getApplication().invokeLater(() -> update());
             }
         });
     }
