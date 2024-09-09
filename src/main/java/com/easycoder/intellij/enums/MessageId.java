@@ -12,6 +12,12 @@ public enum MessageId {
     WebviewAbortQa, // 中断技术问答
     ReGenerateAnswer, // 重新生成回答
 
+    // 知识库相关
+    GetKnowledgeRepoList, // 知识库列表
+    KnowledgeReactOnQaResponse, // 对 GPT 的回答点赞/点踩
+    KnowledgeWebviewQuestion, // 从 webview 输入框提出问题
+    KnowledgeWebviewAbortQa, // 中断技术问答
+
     // 代码相关功能
     WebviewCodeTranslation, // 代码翻译
     ExplainCode_Menu, // 解释代码
@@ -50,6 +56,11 @@ public enum MessageId {
     GetHistoryDialogs, // 获取历史对话列表
     GetHistoryDialogDetail, // 获取历史对话详情
     RemoveDialog32, // 删除对话
+
+    // 知识库历史记录相关
+    GetKnowledgeHistoryDialogs, // 获取历史对话列表
+    GetKnowledgeHistoryDialogDetail, // 获取历史对话详情
+    RemoveKnowledgeDialog32, // 删除对话
 
     // 其他功能
     GetExtensionSettings, // 获取插件配置
