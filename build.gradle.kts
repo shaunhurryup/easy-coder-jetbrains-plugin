@@ -19,7 +19,7 @@ dependencies {
 
 intellij {
     // 设置为 LATEST-EAP-SNAPSHOT,这样可以兼容最新的 EAP 版本
-    version.set("LATEST-EAP-SNAPSHOT")
+    version.set("2022.2.5")
     // 将插件类型设置为 IC (IntelliJ Community),这样可以兼容社区版和旗舰版
     type.set("IC") 
 }
@@ -33,7 +33,7 @@ tasks {
 
     patchPluginXml {
         // 设置最低兼容版本为 2022.1
-        sinceBuild.set("221")
+        sinceBuild.set("222")
         // 移除 untilBuild 的设置,这样可以兼容未来的所有版本
         // untilBuild.set("301.*")
     }
