@@ -20,7 +20,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.InlayModel;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -30,16 +29,16 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 
+import com.intellij.DynamicBundle;
+
 public class CodeTriggerCompletionAction extends DumbAwareAction implements IntentionAction {
 
-	@SafeFieldForPreview
-	private Logger logger = Logger.getInstance(this.getClass());
 	private final ResourceBundle messages;
 	private boolean completionEnabled = false;
 
 	public CodeTriggerCompletionAction() {
-		super(() -> ResourceBundle.getBundle("messages").getString("contextmenu.trigger-completion"));
-		messages = ResourceBundle.getBundle("messages");
+		super(() -> ResourceBundle.getBundle("messages", DynamicBundle.getLocale()).getString("contextmenu.trigger-completion"));
+		messages = ResourceBundle.getBundle("messages", DynamicBundle.getLocale());
 	}
 
 	@Override

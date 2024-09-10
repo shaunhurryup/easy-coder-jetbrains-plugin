@@ -23,14 +23,15 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.DynamicBundle;
 
 public class GenerateComment extends DumbAwareAction implements IntentionAction {
 
     private final ResourceBundle messages;
 
     public GenerateComment() {
-        super(() -> ResourceBundle.getBundle("messages").getString("contextmenu.generate-comment"));
-        messages = ResourceBundle.getBundle("messages");
+        super(() -> ResourceBundle.getBundle("messages", DynamicBundle.getLocale()).getString("contextmenu.generate-comment"));
+        messages = ResourceBundle.getBundle("messages", DynamicBundle.getLocale());
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.intellij.DynamicBundle;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -17,7 +18,6 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -26,12 +26,11 @@ import com.intellij.util.IncorrectOperationException;
 
 public class GenerateUnitTests extends DumbAwareAction implements IntentionAction {
 
-    private static final Logger logger = Logger.getInstance(GenerateUnitTests.class);
     private final ResourceBundle messages;
 
     public GenerateUnitTests() {
-        super(() -> ResourceBundle.getBundle("messages").getString("contextmenu.generate-unit-tests"));
-        messages = ResourceBundle.getBundle("messages");
+        super(() -> ResourceBundle.getBundle("messages", DynamicBundle.getLocale()).getString("contextmenu.generate-unit-tests"));
+        messages = ResourceBundle.getBundle("messages", DynamicBundle.getLocale());
     }
 
     @Override

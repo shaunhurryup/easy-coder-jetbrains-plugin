@@ -17,21 +17,20 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.DynamicBundle;
 
 public class OptimizeCode extends DumbAwareAction implements IntentionAction {
 
-    private static final Logger logger = Logger.getInstance(OptimizeCode.class);
     private final ResourceBundle messages;
 
     public OptimizeCode() {
-        super(() -> ResourceBundle.getBundle("messages").getString("contextmenu.optimize"));
-        messages = ResourceBundle.getBundle("messages");
+        super(() -> ResourceBundle.getBundle("messages", DynamicBundle.getLocale()).getString("contextmenu.optimize"));
+        messages = ResourceBundle.getBundle("messages", DynamicBundle.getLocale());
     }
 
     @Override

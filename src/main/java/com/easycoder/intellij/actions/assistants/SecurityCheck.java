@@ -17,19 +17,19 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.DynamicBundle;
 
 public class SecurityCheck extends DumbAwareAction implements IntentionAction {
     private final ResourceBundle messages;
 
     public SecurityCheck() {
-        super(() -> ResourceBundle.getBundle("messages").getString("contextmenu.security-check"));
-        messages = ResourceBundle.getBundle("messages");
+        super(() -> ResourceBundle.getBundle("messages", DynamicBundle.getLocale()).getString("contextmenu.security-check"));
+        messages = ResourceBundle.getBundle("messages", DynamicBundle.getLocale());
     }
 
     @Override
