@@ -8,6 +8,7 @@ import com.easycoder.intellij.widget.EasyCoderWidget;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
@@ -110,26 +111,30 @@ public class EasyCoderUtils {
     }
 
     public static void addCodeSuggestion(Editor focusedEditor, VirtualFile file, int suggestionPosition, String[] hintList) {
-        WriteCommandAction.runWriteCommandAction(focusedEditor.getProject(), () -> {
-            if (suggestionPosition != focusedEditor.getCaretModel().getOffset()) {
-                return;
-            }
-            if (Objects.nonNull(focusedEditor.getSelectionModel().getSelectedText())) {
-                return;
-            }
+        ApplicationManager.getApplication().invokeLater(() -> {
+            if (suggestionPosition == file.getUserData(EasyCoderWidget.EASY_CODER_POSITION)) {
+                file.putUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION, hintList);
+                
+                // InlayModel inlayModel = editor.getInlayModel();
+                // for (String hint : hintList) {
+                //     String[] lines = hint.split("\n");
+                //     for (int i = 0; i < lines.length; i++) {
+                //         int linePosition = editor.getDocument().getLineEndOffset(editor.getDocument().getLineNumber(position) + i);
+                //         
+                //         inlayModel.addAfterLineEndElement(linePosition, false, new CodeGenHintRenderer(lines[i]));
+                //     }
+                // }
 
-            file.putUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION, hintList);
-            file.putUserData(EasyCoderWidget.EASY_CODER_POSITION, suggestionPosition);
-
-            InlayModel inlayModel = focusedEditor.getInlayModel();
-            inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-            inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-            if (Objects.nonNull(hintList) && hintList.length > 0) {
-                if (!hintList[0].trim().isEmpty()) {
-                    inlayModel.addInlineElement(suggestionPosition, true, new CodeGenHintRenderer(hintList[0]));
-                }
-                for (int i = 1; i < hintList.length; i++) {
-                    inlayModel.addBlockElement(suggestionPosition, false, false, 0, new CodeGenHintRenderer(hintList[i]));
+                InlayModel inlayModel = focusedEditor.getInlayModel();
+                inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+                inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+                if (Objects.nonNull(hintList) && hintList.length > 0) {
+                    if (!hintList[0].trim().isEmpty()) {
+                        inlayModel.addInlineElement(suggestionPosition, true, new CodeGenHintRenderer(hintList[0]));
+                    }
+                    for (int i = 1; i < hintList.length; i++) {
+                        inlayModel.addBlockElement(suggestionPosition, false, false, 0, new CodeGenHintRenderer(hintList[i]));
+                    }
                 }
             }
         });

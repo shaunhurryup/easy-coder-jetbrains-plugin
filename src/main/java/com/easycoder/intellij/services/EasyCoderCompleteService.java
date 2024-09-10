@@ -1,12 +1,9 @@
 package com.easycoder.intellij.services;
 
-import com.easycoder.intellij.handlers.GlobalStore;
-import com.easycoder.intellij.settings.EasyCoderSettings;
-import com.easycoder.intellij.utils.EasyCoderUtils;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
@@ -17,11 +14,23 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import com.easycoder.intellij.handlers.GlobalStore;
+import com.easycoder.intellij.settings.EasyCoderSettings;
+import com.easycoder.intellij.utils.EasyCoderUtils;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 
 public class EasyCoderCompleteService {
+
+    private int requestStatus = 0;
+    private Project project;
+
+    public EasyCoderCompleteService(Project project) {
+        this.project = project;
+    }
 
     public String[] getCodeCompletionHints(CharSequence editorContents, int cursorPosition) {
         EasyCoderSettings settings = EasyCoderSettings.getInstance();
@@ -32,6 +41,7 @@ public class EasyCoderCompleteService {
 
         String generatedText = buildApiPostForBackend(settings, prefix, suffix);
         if (StringUtils.isBlank(generatedText)) {
+            voteStatus().noSuggestion();
             return null;
         }
         return new String[] { generatedText };
@@ -42,10 +52,12 @@ public class EasyCoderCompleteService {
         if (token == null) {
             return "";
         }
-        GlobalStore.loading = true;
+        voteStatus().loading();
 
-
-        String apiURL = "http://easycoder.puhuacloud.com/api/easycoder-api/app/session/completions";
+        long startTime = System.currentTimeMillis();
+        System.out.println("=== completion start === ");
+        String serverAddress = EasyCoderSettings.getInstance().getServerAddressShaun();
+        String apiURL = serverAddress + "/api/easycoder-api/app/session/completions";
         HttpPost httpPost = new HttpPost(apiURL);
 
         httpPost.setHeader("Content-Type", "application/json");
@@ -53,7 +65,7 @@ public class EasyCoderCompleteService {
         JsonObject body = new JsonObject();
         body.addProperty("prefix", prefix);
         body.addProperty("suffix", suffix);
-        body.addProperty("rows", 0);
+        body.addProperty("rows", settings.getCodeCompletionLengthShaun().getValue());
         StringEntity requestEntity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
         httpPost.setEntity(requestEntity);
 
@@ -83,16 +95,71 @@ public class EasyCoderCompleteService {
             .exceptionally(e -> "");
 
         try {
-            return future.get();
+            String result = future.get();
+            if (StringUtils.isBlank(result)) {
+                voteStatus().noSuggestion();
+            } else {
+                voteStatus().done();
+            }
+            return result;
         } catch (InterruptedException | ExecutionException e) {
+            voteStatus().noSuggestion();
             return "";
         } finally {
-            GlobalStore.loading = false;
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            System.out.println("fetch ghost text duration: " + duration + " ms");
         }
     }
 
     public int getStatus() {
-        return 200;
+        return requestStatus;
     }
 
+    private VoteStatus voteStatus() {
+        return new VoteStatus();
+    }
+
+    private class VoteStatus {
+        private static final int VOTE = 1;
+
+        public void done() {
+            requestStatus = Math.max(1, requestStatus) - VOTE;
+            updateStatus();
+        }
+
+        public void loading() {
+            requestStatus = Math.max(0, requestStatus) + VOTE;
+            updateStatus();
+        }
+
+        public void noSuggestion() {
+            requestStatus = -1;
+            updateStatus();
+        }
+
+        private void updateStatus() {
+            ApplicationManager.getApplication().invokeLater(() -> {
+                if (requestStatus > 0) {
+                    GlobalStore.status = "loading";
+                    GlobalStore.text = "$(sync~spin) EasyCoder";
+                    GlobalStore.tooltip = "Extension is running, please wait a moment";
+                } else if (requestStatus == 0) {
+                    GlobalStore.status = "done";
+                    GlobalStore.text = "EasyCoder: Done";
+                    GlobalStore.tooltip = "Extension completed";
+                } else {
+                    GlobalStore.status = "no-suggestion";
+                    GlobalStore.text = "EasyCoder: No suggestion";
+                    GlobalStore.tooltip = "No suggestion returned";
+                }
+
+                // TODO: Update the status bar with the new text and tooltip
+                // This part depends on how you're managing the status bar in your IntelliJ plugin
+                // You might need to create a method to update the status bar or use an existing one
+                // For example:
+                // updateStatusBar(GlobalStore.text, GlobalStore.tooltip);
+            });
+        }
+    }
 }

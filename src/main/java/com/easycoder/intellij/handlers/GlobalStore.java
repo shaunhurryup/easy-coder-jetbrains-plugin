@@ -1,5 +1,8 @@
 package com.easycoder.intellij.handlers;
 
 public class GlobalStore {
-    static public boolean loading = false;
+    public static boolean loading = false;
+    public static String status = "";
+    public static String text = "";
+    public static String tooltip = "";
 }

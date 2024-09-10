@@ -20,4 +20,8 @@ public enum CodeCompletionDelayShaun {
     public String toString() {
         return description;
     }
+
+    public Long getValue() {
+        return Long.parseLong(description);
+    }
 }

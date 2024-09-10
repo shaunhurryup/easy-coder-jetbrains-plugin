@@ -3,39 +3,58 @@ package com.easycoder.intellij.utils;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorCustomElementRenderer;
 import com.intellij.openapi.editor.Inlay;
-import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.editor.colors.EditorFontType;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
 public class CodeGenHintRenderer implements EditorCustomElementRenderer {
-    private final String myText;
-    private Font myFont;
-
-    public CodeGenHintRenderer(String text, Font font) {
-        myText = text;
-        myFont = font;
-    }
+    private final String[] lines;
 
     public CodeGenHintRenderer(String text) {
-        myText = text;
+        this.lines = text.split("\n");
     }
 
     @Override
     public int calcWidthInPixels(@NotNull Inlay inlay) {
         Editor editor = inlay.getEditor();
         Font font = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
-        myFont = new Font(font.getName(), Font.ITALIC, font.getSize());
-        return editor.getContentComponent().getFontMetrics(font).stringWidth(myText);
+        FontMetrics fontMetrics = editor.getContentComponent().getFontMetrics(font);
+        
+        int maxWidth = 0;
+        for (String line : lines) {
+            int width = fontMetrics.stringWidth(line);
+            if (width > maxWidth) {
+                maxWidth = width;
+            }
+        }
+        
+        return editor.getScrollingModel().getVisibleArea().width;
     }
 
     @Override
-    public void paint(@NotNull Inlay inlay, @NotNull Graphics g, @NotNull Rectangle targetRegion, @NotNull TextAttributes textAttributes) {
+    public void paint(@NotNull Inlay inlay, @NotNull Graphics g, @NotNull Rectangle r, @NotNull TextAttributes textAttributes) {
+        Editor editor = inlay.getEditor();
+        Font font = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
+        g.setFont(font);
+        
         g.setColor(JBColor.GRAY);
-        g.setFont(myFont);
-        g.drawString(myText, targetRegion.x, targetRegion.y + targetRegion.height - (int) Math.ceil((double) g.getFontMetrics().getFont().getSize() / 2) + 1);
+
+        FontMetrics fontMetrics = g.getFontMetrics();
+        int lineHeight = editor.getLineHeight();
+        
+        // 调整基线位置，使幽灵文本与编辑器内容高度完全一致
+        for (int i = 0; i < lines.length; i++) {
+            // int y = r.y + (i + 1) * lineHeight - fontMetrics.getAscent() + fontMetrics.getDescent();
+            int y = r.y + (i + 1) * lineHeight - fontMetrics.getMaxAdvance();
+            g.drawString(lines[i], r.x, y);
+        }
     }
 
+    @Override
+    public int calcHeightInPixels(@NotNull Inlay inlay) {
+        return inlay.getEditor().getLineHeight() * lines.length;
+    }
 }
