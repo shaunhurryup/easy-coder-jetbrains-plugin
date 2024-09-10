@@ -1,15 +1,17 @@
 package com.easycoder.intellij.actions.assistants;
 
-import com.easycoder.intellij.constant.PrefixString;
+import java.util.Objects;
+import java.util.ResourceBundle;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.easycoder.intellij.enums.MessageId;
 import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
-import com.easycoder.intellij.utils.EditorUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
-import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -19,24 +21,22 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
 
 public class GenerateUnitTests extends DumbAwareAction implements IntentionAction {
 
-    @SafeFieldForPreview
-    private Logger logger = Logger.getInstance(this.getClass());
+    private static final Logger logger = Logger.getInstance(GenerateUnitTests.class);
+    private final ResourceBundle messages;
+
+    public GenerateUnitTests() {
+        super(() -> ResourceBundle.getBundle("messages").getString("contextmenu.generate-unit-tests"));
+        messages = ResourceBundle.getBundle("messages");
+    }
 
     @Override
-    @IntentionName
-    @NotNull
-    public String getText() {
-        return "Generate Unit Tests";
+    public @NotNull String getText() {
+        return messages.getString("contextmenu.generate-unit-tests");
     }
 
     @Override
@@ -73,7 +73,7 @@ public class GenerateUnitTests extends DumbAwareAction implements IntentionActio
 
             JsonObject payload = new JsonObject();
             payload.addProperty("content", selectedText);
-            payload.addProperty("command", "为下面代码生成单元测试");
+            payload.addProperty("command", "帮我给这段代码生成单元测试");
 
             WebviewMessage request = WebviewMessage.builder()
                     .id(MessageId.GenerateUnitTest_Menu)
@@ -82,5 +82,11 @@ public class GenerateUnitTests extends DumbAwareAction implements IntentionActio
 
             project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new Gson().toJson(request));
         }, ModalityState.NON_MODAL);
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+        e.getPresentation().setText(messages.getString("contextmenu.generate-unit-tests"));
+        // ... 其他更新逻辑
     }
 }

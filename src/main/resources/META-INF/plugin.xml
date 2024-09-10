@@ -1,18 +1,24 @@
-<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<!-- Plugin Configuration File. Read more:
+https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin
+    versions. -->
     <id>EasyCoder</id>
 
     <!-- Public plugin name should be written in Title Case.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
     <name>EasyCoder</name>
 
+    <resource-bundle>messages</resource-bundle>
+
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
     <vendor>EasyCoder</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
-         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
-         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]>
+    tag.
+         Guidelines:
+    https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
     Code with EasyCoder LLM
     </br>
@@ -36,63 +42,61 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.easycoder.intellij.services.EasyCoderCompleteService"/>
-        <applicationService serviceImplementation="com.easycoder.intellij.settings.EasyCoderSettings"/>
-        <applicationConfigurable parentId="tools" instance="com.easycoder.intellij.settings.EasyCoderSettingsProvider"
-                                 id="EasyCoderSettingsProvider" displayName="EasyCoder"/>
+        <applicationService
+            serviceImplementation="com.easycoder.intellij.services.EasyCoderCompleteService" />
+        <applicationService
+            serviceImplementation="com.easycoder.intellij.settings.EasyCoderSettings" />
+        <applicationConfigurable parentId="tools"
+            instance="com.easycoder.intellij.settings.EasyCoderSettingsProvider"
+            id="EasyCoderSettingsProvider" displayName="EasyCoder" />
         <statusBarWidgetFactory id="EasyCoderFactory"
-                                implementation="com.easycoder.intellij.widget.EasyCoderWidgetFactory"
-                                order="after positionWidget"/>
-        <statusBarWidgetFactory order="first" id="StatusPopupFactory" implementation="com.easycoder.intellij.widget.StatusPopupFactory"/>
+            implementation="com.easycoder.intellij.widget.EasyCoderWidgetFactory"
+            order="after positionWidget" />
+        <statusBarWidgetFactory order="first" id="StatusPopupFactory"
+            implementation="com.easycoder.intellij.widget.StatusPopupFactory" />
 
-        <editorActionHandler action="EditorTab" implementationClass="com.easycoder.intellij.actions.complete.CodeGenTabAction"/>
-        <editorActionHandler action="EditorEscape" implementationClass="com.easycoder.intellij.actions.complete.CodeGenEscAction"/>
-        <notificationGroup id="EasyCoder" displayType="STICKY_BALLOON" isLogByDefault="true"/>
-        <toolWindow id="EasyCoder" anchor="right" icon="com.easycoder.intellij.utils.EasyCoderIcons.Action" factoryClass="com.easycoder.intellij.window.EasyCoderSideWindowFactory"/>
-        <projectService id="EasyCoderSideWindowService" serviceImplementation="com.easycoder.intellij.services.EasyCoderSideWindowService"/>
-        <postStartupActivity implementation="com.easycoder.intellij.listener.TextSelectionStartupActivity"/>
+        <editorActionHandler action="EditorTab"
+            implementationClass="com.easycoder.intellij.actions.complete.CodeGenTabAction" />
+        <editorActionHandler action="EditorEscape"
+            implementationClass="com.easycoder.intellij.actions.complete.CodeGenEscAction" />
+        <notificationGroup id="EasyCoder" displayType="STICKY_BALLOON" isLogByDefault="true" />
+        <toolWindow id="EasyCoder" anchor="right"
+            icon="com.easycoder.intellij.utils.EasyCoderIcons.Action"
+            factoryClass="com.easycoder.intellij.window.EasyCoderSideWindowFactory" />
+        <projectService id="EasyCoderSideWindowService"
+            serviceImplementation="com.easycoder.intellij.services.EasyCoderSideWindowService" />
+        <postStartupActivity
+            implementation="com.easycoder.intellij.listener.TextSelectionStartupActivity" />
     </extensions>
 
     <actions>
         <group id="EasyCoderActions" popup="true" text="EasyCoder" description="EasyCoder"
-               icon="/icons/actionIcon.svg">
-            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
-            <action class="com.easycoder.intellij.actions.complete.CodeTriggerCompletionAction" id="TriggerInlayCompletionAction" text="Trigger Completion">
-                <override-text place="MainMenu" text="EasyCoder: Trigger Completion"/>
-                <keyboard-shortcut first-keystroke="alt BACK_SLASH" keymap="$default" replace-all="true"/>
-                <keyboard-shortcut first-keystroke="alt BACK_SLASH" keymap="Mac OS X" replace-all="true"/>
-                <keyboard-shortcut first-keystroke="alt BACK_SLASH" keymap="Mac OS X 10.5+" replace-all="true"/>
+            icon="/icons/actionIcon.svg">
+            <add-to-group group-id="EditorPopupMenu" anchor="first" />
+            <action class="com.easycoder.intellij.actions.complete.CodeTriggerCompletionAction"
+                id="TriggerInlayCompletionAction" text="contextmenu.trigger-completion" />
+            <action id="EasyCoder.ExplainCode"
+                class="com.easycoder.intellij.actions.assistants.ExplainCode"
+                text="contextmenu.explain" />
+            <action id="EasyCoder.OptimizeCode"
+                class="com.easycoder.intellij.actions.assistants.OptimizeCode"
+                text="contextmenu.optimize" />
+            <separator />
 
-            </action>
-            <separator/>
-            <action id="EasyCoder.ExplainCode" class="com.easycoder.intellij.actions.assistants.ExplainCode" text="Explain Code">
-                <override-text place="GoToAction" text="EasyCoder: Explain Code"/>
-                <keyboard-shortcut first-keystroke="alt E" keymap="$default" replace-all="true"/>
-                <keyboard-shortcut first-keystroke="alt E" keymap="Mac OS X" replace-all="true"/>
-                <keyboard-shortcut first-keystroke="alt E" keymap="Mac OS X 10.5+" replace-all="true"/>
-            </action>
-            <action id="EasyCoder.OptimizeCode" class="com.easycoder.intellij.actions.assistants.OptimizeCode" text="Optimize Code">
-                <override-text place="GoToAction" text="EasyCoder: Optimize Code"/>
-            </action>
-            <separator/>
+            <action id="EasyCoder.CommentCode"
+                class="com.easycoder.intellij.actions.assistants.GenerateComment"
+                text="contextmenu.generate-comment" />
+            <action id="EasyCoder.UnitTestCode"
+                class="com.easycoder.intellij.actions.assistants.GenerateUnitTests"
+                text="contextmenu.generate-unit-tests" />
+            <separator />
 
-            <action id="EasyCoder.CommentCode" class="com.easycoder.intellij.actions.assistants.GenerateComment" text="Generate Comment">
-                <override-text place="GoToAction" text="EasyCoder: Generate Comment"/>
-                <keyboard-shortcut first-keystroke="alt V" keymap="$default" replace-all="true"/>
-                <keyboard-shortcut first-keystroke="alt V" keymap="Mac OS X" replace-all="true"/>
-                <keyboard-shortcut first-keystroke="alt V" keymap="Mac OS X 10.5+" replace-all="true"/>
-            </action>
-            <action id="EasyCoder.UnitTestCode" class="com.easycoder.intellij.actions.assistants.GenerateUnitTests" text="Generate Unit Tests">
-                <override-text place="GoToAction" text="EasyCoder: Generate Unit Tests"/>
-            </action>
-            <separator/>
-
-            <action id="EasyCoder.PerformanceCode" class="com.easycoder.intellij.actions.assistants.PerformanceCheck" text="Performance Check">
-                <override-text place="GoToAction" text="EasyCoder: Performance Check"/>
-            </action>
-            <action id="EasyCoder.SecurityCode" class="com.easycoder.intellij.actions.assistants.SecurityCheck" text="Security Check">
-                <override-text place="GoToAction" text="EasyCoder: Security Check"/>
-            </action>
+            <action id="EasyCoder.PerformanceCode"
+                class="com.easycoder.intellij.actions.assistants.PerformanceCheck"
+                text="contextmenu.performance-check" />
+            <action id="EasyCoder.SecurityCode"
+                class="com.easycoder.intellij.actions.assistants.SecurityCheck"
+                text="contextmenu.security-check" />
         </group>
     </actions>
 

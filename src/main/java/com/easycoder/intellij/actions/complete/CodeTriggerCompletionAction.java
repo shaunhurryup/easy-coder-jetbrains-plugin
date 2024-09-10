@@ -1,5 +1,13 @@
 package com.easycoder.intellij.actions.complete;
 
+import java.util.Objects;
+import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.easycoder.intellij.services.EasyCoderCompleteService;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderUtils;
@@ -22,88 +30,103 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 public class CodeTriggerCompletionAction extends DumbAwareAction implements IntentionAction {
 
-    @SafeFieldForPreview
-    private Logger logger = Logger.getInstance(this.getClass());
+	@SafeFieldForPreview
+	private Logger logger = Logger.getInstance(this.getClass());
+	private final ResourceBundle messages;
+	private boolean completionEnabled = false;
 
-    @Override
-    @IntentionName
-    @NotNull
-    public String getText() {
-        return "Trigger Completion";
-    }
+	public CodeTriggerCompletionAction() {
+		super(() -> ResourceBundle.getBundle("messages").getString("contextmenu.trigger-completion"));
+		messages = ResourceBundle.getBundle("messages");
+	}
 
-    @Override
-    @NotNull
-    @IntentionFamilyName
-    public String getFamilyName() {
-        return "EasyCoder";
-    }
+	@Override
+	@IntentionName
+	@NotNull
+	public String getText() {
+		return completionEnabled ? messages.getString("contextmenu.disable-completion") : messages.getString("contextmenu.trigger-completion");
+	}
 
-    @Override
-    public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
-        return false;
-    }
+	@Override
+	@NotNull
+	@IntentionFamilyName
+	public String getFamilyName() {
+		return "EasyCoder";
+	}
 
-    @Override
-    public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+	@Override
+	public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
+		return false;
+	}
 
-    }
+	@Override
+	public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
 
-    @Override
-    public boolean startInWriteAction() {
-        return true;
-    }
+	}
 
-    @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-        Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-        CompletableFuture.delayedExecutor(EasyCoderSettings.getInstance().getCodeCompletionDelayShaun().getValue(), TimeUnit.MILLISECONDS).execute(() -> updateInlayHints(editor));
-    }
+	@Override
+	public boolean startInWriteAction() {
+		return true;
+	}
 
-    private void updateInlayHints(Editor focusedEditor) {
-        boolean enableCodeCompletionShaun = EasyCoderSettings.getInstance().isEnableCodeCompletionShaun();
-        String token = PropertiesComponent.getInstance().getValue("easycoder:token");
-        if (StringUtils.isBlank(token) || !enableCodeCompletionShaun || Objects.isNull(focusedEditor) || !EditorUtils.isMainEditor(focusedEditor)) {
-            return;
-        }
-        VirtualFile file = FileDocumentManager.getInstance().getFile(focusedEditor.getDocument());
-        if (Objects.isNull(file)) {
-            return;
-        }
+	@Override
+	public void actionPerformed(@NotNull AnActionEvent e) {
+		completionEnabled = !completionEnabled;
+		if (completionEnabled) {
+			Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
+			CompletableFuture.delayedExecutor(EasyCoderSettings.getInstance().getCodeCompletionDelayShaun().getValue(), TimeUnit.MILLISECONDS).execute(() -> updateInlayHints(editor));
+		} else {
+			// 禁用补全功能的逻辑,例如清除所有的InlayHint
+			Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
+			InlayModel inlayModel = editor.getInlayModel();
+			inlayModel.getInlineElementsInRange(0, editor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+			inlayModel.getBlockElementsInRange(0, editor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+		}
+	}
 
-        String selection = focusedEditor.getCaretModel().getCurrentCaret().getSelectedText();
-        if (Objects.nonNull(selection) && !selection.isEmpty()) {
-            String[] existingHints = file.getUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION);
-            if (Objects.nonNull(existingHints) && existingHints.length > 0) {
-                file.putUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION, null);
-                file.putUserData(EasyCoderWidget.EASY_CODER_POSITION, focusedEditor.getCaretModel().getOffset());
+	private void updateInlayHints(Editor focusedEditor) {
+		boolean enableCodeCompletionShaun = EasyCoderSettings.getInstance().isEnableCodeCompletionShaun();
+		String token = PropertiesComponent.getInstance().getValue("easycoder:token");
+		if (StringUtils.isBlank(token) || !enableCodeCompletionShaun || Objects.isNull(focusedEditor) || !EditorUtils.isMainEditor(focusedEditor)) {
+			return;
+		}
+		VirtualFile file = FileDocumentManager.getInstance().getFile(focusedEditor.getDocument());
+		if (Objects.isNull(file)) {
+			return;
+		}
 
-                InlayModel inlayModel = focusedEditor.getInlayModel();
-                inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-                inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-            }
-            return;
-        }
+		String selection = focusedEditor.getCaretModel().getCurrentCaret().getSelectedText();
+		if (Objects.nonNull(selection) && !selection.isEmpty()) {
+			String[] existingHints = file.getUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION);
+			if (Objects.nonNull(existingHints) && existingHints.length > 0) {
+				file.putUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION, null);
+				file.putUserData(EasyCoderWidget.EASY_CODER_POSITION, focusedEditor.getCaretModel().getOffset());
 
-        Integer easyCoderPos = file.getUserData(EasyCoderWidget.EASY_CODER_POSITION);
-        int currentPosition = focusedEditor.getCaretModel().getOffset();
+				InlayModel inlayModel = focusedEditor.getInlayModel();
+				inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+				inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+			}
+			return;
+		}
 
-        InlayModel inlayModel = focusedEditor.getInlayModel();
-        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-        inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-        file.putUserData(EasyCoderWidget.EASY_CODER_POSITION, currentPosition);
-        EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
-        CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
-        CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition));
-        future.thenAccept(hintList -> EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
-    }
+		Integer easyCoderPos = file.getUserData(EasyCoderWidget.EASY_CODER_POSITION);
+		int currentPosition = focusedEditor.getCaretModel().getOffset();
+
+		InlayModel inlayModel = focusedEditor.getInlayModel();
+		inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+		inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+		file.putUserData(EasyCoderWidget.EASY_CODER_POSITION, currentPosition);
+		EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
+		CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
+		CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition));
+		future.thenAccept(hintList -> EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
+	}
+
+	@Override
+	public void update(@NotNull AnActionEvent e) {
+		e.getPresentation().setText(completionEnabled ? messages.getString("contextmenu.disable-completion") : messages.getString("contextmenu.trigger-completion"));
+		// ... 其他更新逻辑
+	}
 }

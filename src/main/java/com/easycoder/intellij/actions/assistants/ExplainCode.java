@@ -1,5 +1,10 @@
 package com.easycoder.intellij.actions.assistants;
 
+import java.util.Objects;
+import java.util.ResourceBundle;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.easycoder.intellij.enums.MessageId;
 import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
@@ -7,7 +12,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
-import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.LangDataKeys;
@@ -19,20 +23,19 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Objects;
 
 public class ExplainCode extends DumbAwareAction implements IntentionAction {
 
-    @SafeFieldForPreview
-    private Logger logger = Logger.getInstance(this.getClass());
+    private final ResourceBundle messages;
+
+    public ExplainCode() {
+        super(() -> ResourceBundle.getBundle("messages").getString("contextmenu.explain"));
+        messages = ResourceBundle.getBundle("messages");
+    }
 
     @Override
-    @IntentionName
-    @NotNull
-    public String getText() {
-        return "Explain Code";
+    public @NotNull String getText() {
+        return messages.getString("contextmenu.explain");
     }
 
     @Override
@@ -79,5 +82,10 @@ public class ExplainCode extends DumbAwareAction implements IntentionAction {
 
             project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new Gson().toJson(request));
         }, ModalityState.NON_MODAL);
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+        e.getPresentation().setText(messages.getString("contextmenu.explain"));
     }
 }
