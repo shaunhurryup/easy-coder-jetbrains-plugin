@@ -73,7 +73,7 @@ public class ExplainCode extends DumbAwareAction implements IntentionAction {
 
             JsonObject payload = new JsonObject();
             payload.addProperty("content", selectedText);
-            payload.addProperty("command", "帮我解释这段代码");
+            payload.addProperty("command", messages.getString("contextmenu.explain_code_command")); // Updated key
 
             WebviewMessage request = WebviewMessage.builder()
                     .id(MessageId.ExplainCode_Menu)

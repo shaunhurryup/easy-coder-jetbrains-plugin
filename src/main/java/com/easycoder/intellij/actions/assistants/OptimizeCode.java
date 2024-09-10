@@ -72,7 +72,7 @@ public class OptimizeCode extends DumbAwareAction implements IntentionAction {
 
             JsonObject payload = new JsonObject();
             payload.addProperty("content", selectedText);
-            payload.addProperty("command", "帮我优化这段代码");
+            payload.addProperty("command", messages.getString("contextmenu.optimize_code_command")); // Updated key
 
             WebviewMessage request = WebviewMessage.builder()
                     .id(MessageId.OptimizeCode_Menu)

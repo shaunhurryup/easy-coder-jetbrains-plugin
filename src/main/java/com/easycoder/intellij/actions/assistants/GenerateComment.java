@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.DynamicBundle;
+import com.easycoder.intellij.enums.MessageType;
 
 public class GenerateComment extends DumbAwareAction implements IntentionAction {
 
@@ -73,14 +74,15 @@ public class GenerateComment extends DumbAwareAction implements IntentionAction 
 
             JsonObject payload = new JsonObject();
             payload.addProperty("content", selectedText);
-            payload.addProperty("command", "帮我给这段代码生成注释");
+            payload.addProperty("command", messages.getString("contextmenu.generate_comment_command"));
 
             WebviewMessage request = WebviewMessage.builder()
                     .id(MessageId.GenerateComment_Menu)
+                    .type(MessageType.Editor2Webview)
                     .payload(payload)
                     .build();
 
-            project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(new Gson().toJson(request));
+            project.getService(EasyCoderSideWindowService.class).notifyIdeAppInstance(request);
         }, ModalityState.NON_MODAL);
     }
 

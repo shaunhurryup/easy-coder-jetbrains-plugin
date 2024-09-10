@@ -72,7 +72,7 @@ public class PerformanceCheck extends DumbAwareAction implements IntentionAction
 
             JsonObject payload = new JsonObject();
             payload.addProperty("content", selectedText);
-            payload.addProperty("command", "是否存在性能问题,请给出优化意见");
+            payload.addProperty("command", messages.getString("contextmenu.performance_check_command")); // Updated key
 
             WebviewMessage request = WebviewMessage.builder()
                     .id(MessageId.CheckPerformance_Menu)

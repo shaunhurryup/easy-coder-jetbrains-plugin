@@ -72,7 +72,7 @@ public class GenerateUnitTests extends DumbAwareAction implements IntentionActio
 
             JsonObject payload = new JsonObject();
             payload.addProperty("content", selectedText);
-            payload.addProperty("command", "帮我给这段代码生成单元测试");
+            payload.addProperty("command", messages.getString("contextmenu.generate_unit_tests_command")); // Updated key
 
             WebviewMessage request = WebviewMessage.builder()
                     .id(MessageId.GenerateUnitTest_Menu)

@@ -10,6 +10,7 @@ import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.intellij.DynamicBundle;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -22,7 +23,6 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.DynamicBundle;
 
 public class SecurityCheck extends DumbAwareAction implements IntentionAction {
     private final ResourceBundle messages;
@@ -71,7 +71,7 @@ public class SecurityCheck extends DumbAwareAction implements IntentionAction {
 
             JsonObject payload = new JsonObject();
             payload.addProperty("content", selectedText);
-            payload.addProperty("command", "是否存在安全隐患,请给出修复建议");
+            payload.addProperty("command", messages.getString("contextmenu.security_check_command")); // Updated key
 
             WebviewMessage request = WebviewMessage.builder()
                     .id(MessageId.CheckSecurity_Menu)
