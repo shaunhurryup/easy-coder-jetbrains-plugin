@@ -14,36 +14,42 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import com.easycoder.intellij.constant.Const;
 import com.easycoder.intellij.handlers.GlobalStore;
 import com.easycoder.intellij.http.HttpToolkits;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderUtils;
+import com.easycoder.intellij.widget.DynamicStatusBarWidget;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.WindowManager;
 
 public class EasyCoderCompleteService {
 
-    private int requestStatus = 0;
-    private Project project;
+    private CodeCompletionProcess codeCompletionProcess;
 
-    public EasyCoderCompleteService(Project project) {
-        this.project = project;
-    }
+    public String[] getCodeCompletionHints(CharSequence editorContents, int cursorPosition, Project project) {
+        DynamicStatusBarWidget widget = (DynamicStatusBarWidget) WindowManager.getInstance()
+                .getStatusBar(project)
+                .getWidget("DynamicStatusBarWidget");
 
-    public String[] getCodeCompletionHints(CharSequence editorContents, int cursorPosition) {
+        if (widget != null) {
+            widget.updateText(String.valueOf(Math.random()));
+        }
+
         EasyCoderSettings settings = EasyCoderSettings.getInstance();
         String contents = editorContents.toString();
 
         String prefix = contents.substring(EasyCoderUtils.prefixHandle(0, cursorPosition), cursorPosition);
-        String suffix = contents.substring(cursorPosition, EasyCoderUtils.suffixHandle(cursorPosition, editorContents.length()));
+        String suffix = contents.substring(cursorPosition,
+                EasyCoderUtils.suffixHandle(cursorPosition, editorContents.length()));
 
         String generatedText = buildApiPostForBackend(settings, prefix, suffix);
         if (StringUtils.isBlank(generatedText)) {
-            voteStatus().noSuggestion();
-            return null;
+            codeCompletionProcess.noSuggestion();
+            return new String[] {};
         }
         return new String[] { generatedText };
     }
@@ -53,7 +59,7 @@ public class EasyCoderCompleteService {
         if (token == null) {
             return "";
         }
-        voteStatus().loading();
+        codeCompletionProcess.loading();
 
         long startTime = System.currentTimeMillis();
         String serverAddress = EasyCoderSettings.getInstance().getServerAddressShaun();
@@ -70,41 +76,41 @@ public class EasyCoderCompleteService {
         StringEntity requestEntity = new StringEntity(body.toString(), ContentType.APPLICATION_JSON);
         httpPost.setEntity(requestEntity);
 
-        int timeoutMs = 10_000;
+        int timeoutMs = Const.CODE_COMPLETION_TIMEOUT;
         RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectTimeout(timeoutMs)
-            .setSocketTimeout(timeoutMs)
-            .build();
+                .setConnectTimeout(timeoutMs)
+                .setSocketTimeout(timeoutMs)
+                .build();
         httpPost.setConfig(requestConfig);
 
         CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
-                try {
-                    CloseableHttpClient httpClient = HttpClients.createDefault();
+            try {
+                CloseableHttpClient httpClient = HttpClients.createDefault();
 
-                    httpPost.setHeader("token", token);
+                httpPost.setHeader("token", token);
 
-                    HttpResponse response = httpClient.execute(httpPost);
-                    String responseBody = EntityUtils.toString(response.getEntity());
-                    httpClient.close();
-                    
-                    JsonObject jsonResponse = JsonParser.parseString(responseBody).getAsJsonObject();
-                    return jsonResponse.getAsJsonObject("data").get("content").getAsString();
-                } catch (Exception e) {
-                    return "";
-                }
-            }).orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
-            .exceptionally(e -> "");
+                HttpResponse response = httpClient.execute(httpPost);
+                String responseBody = EntityUtils.toString(response.getEntity());
+                httpClient.close();
+
+                JsonObject jsonResponse = JsonParser.parseString(responseBody).getAsJsonObject();
+                return jsonResponse.getAsJsonObject("data").get("content").getAsString();
+            } catch (Exception e) {
+                return "";
+            }
+        }).orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+                .exceptionally(e -> "");
 
         try {
             String result = future.get();
             if (StringUtils.isBlank(result)) {
-                voteStatus().noSuggestion();
+                codeCompletionProcess.noSuggestion();
             } else {
-                voteStatus().done();
+                codeCompletionProcess.done();
             }
             return result;
         } catch (InterruptedException | ExecutionException e) {
-            voteStatus().noSuggestion();
+            codeCompletionProcess.noSuggestion();
             return "";
         } finally {
             long endTime = System.currentTimeMillis();
@@ -113,54 +119,4 @@ public class EasyCoderCompleteService {
         }
     }
 
-    public int getStatus() {
-        return requestStatus;
-    }
-
-    private VoteStatus voteStatus() {
-        return new VoteStatus();
-    }
-
-    private class VoteStatus {
-        private static final int VOTE = 1;
-
-        public void done() {
-            requestStatus = Math.max(1, requestStatus) - VOTE;
-            updateStatus();
-        }
-
-        public void loading() {
-            requestStatus = Math.max(0, requestStatus) + VOTE;
-            updateStatus();
-        }
-
-        public void noSuggestion() {
-            requestStatus = -1;
-            updateStatus();
-        }
-
-        private void updateStatus() {
-            ApplicationManager.getApplication().invokeLater(() -> {
-                if (requestStatus > 0) {
-                    GlobalStore.status = "loading";
-                    GlobalStore.text = "$(sync~spin) EasyCoder";
-                    GlobalStore.tooltip = "Extension is running, please wait a moment";
-                } else if (requestStatus == 0) {
-                    GlobalStore.status = "done";
-                    GlobalStore.text = "EasyCoder: Done";
-                    GlobalStore.tooltip = "Extension completed";
-                } else {
-                    GlobalStore.status = "no-suggestion";
-                    GlobalStore.text = "EasyCoder: No suggestion";
-                    GlobalStore.tooltip = "No suggestion returned";
-                }
-
-                // TODO: Update the status bar with the new text and tooltip
-                // This part depends on how you're managing the status bar in your IntelliJ plugin
-                // You might need to create a method to update the status bar or use an existing one
-                // For example:
-                // updateStatusBar(GlobalStore.text, GlobalStore.tooltip);
-            });
-        }
-    }
 }

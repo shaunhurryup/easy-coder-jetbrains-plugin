@@ -1,3 +1,4 @@
+ // Start of Selection
 package com.easycoder.intellij.widget;
 
 import java.util.Arrays;
@@ -38,9 +39,9 @@ public class StatusPopup extends EditorBasedStatusBarPopup {
     @NotNull
     @Override
     protected WidgetState getWidgetState(@Nullable VirtualFile virtualFile) {
-        boolean loading = GlobalStore.loading;
-        System.out.println("globalStore: " + GlobalStore.status + GlobalStore.text + GlobalStore.tooltip);
-        return new WidgetState("This is tooltip", loading ? "Loading..." : "EasyCoder", true);
+        // Use GlobalStore's text and tooltip for dynamic status
+        System.out.println("[GlobalStore]: " + GlobalStore.text + GlobalStore.tooltip);
+        return new WidgetState(GlobalStore.tooltip, GlobalStore.text, true);
     }
 
     @Override

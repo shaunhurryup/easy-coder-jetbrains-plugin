@@ -66,8 +66,9 @@ public class EasyCoderWidget extends EditorBasedWidget
 
     @Override
     public @Nullable Icon getIcon() {
-        EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
-        EasyCoderStatus status = EasyCoderStatus.getStatusByCode(easyCoder.getStatus());
+        // EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
+        // EasyCoderStatus status = EasyCoderStatus.getStatusByCode(easyCoder.getStatus());
+        EasyCoderStatus status = EasyCoderStatus.getStatusByCode(0);
         if (status == EasyCoderStatus.OK) {
             return EasyCoderSettings.getInstance().isSaytEnabled() ? EasyCoderIcons.WidgetEnabled : EasyCoderIcons.WidgetDisabled;
         } else {
@@ -90,7 +91,8 @@ public class EasyCoderWidget extends EditorBasedWidget
         }
 
         EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
-        int statusCode = easyCoder.getStatus();
+        int statusCode = 0;
+        // int statusCode = easyCoder.getStatus();
         EasyCoderStatus status = EasyCoderStatus.getStatusByCode(statusCode);
         switch (status) {
             case OK:
@@ -269,7 +271,7 @@ public class EasyCoderWidget extends EditorBasedWidget
         }
         EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
         CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
-        CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition));
+        CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition, getProject()));
         future.thenAccept(hintList -> EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
     }
 

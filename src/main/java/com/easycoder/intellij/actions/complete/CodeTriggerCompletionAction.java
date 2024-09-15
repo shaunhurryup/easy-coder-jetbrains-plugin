@@ -75,7 +75,8 @@ public class CodeTriggerCompletionAction extends DumbAwareAction implements Inte
 		completionEnabled = !completionEnabled;
 		if (completionEnabled) {
 			Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
-			CompletableFuture.delayedExecutor(EasyCoderSettings.getInstance().getCodeCompletionDelayShaun().getValue(), TimeUnit.MILLISECONDS).execute(() -> updateInlayHints(editor));
+			Project project = e.getData(CommonDataKeys.PROJECT);
+			CompletableFuture.delayedExecutor(EasyCoderSettings.getInstance().getCodeCompletionDelayShaun().getValue(), TimeUnit.MILLISECONDS).execute(() -> updateInlayHints(editor, project));
 		} else {
 			// 禁用补全功能的逻辑,例如清除所有的InlayHint
 			Editor editor = e.getRequiredData(CommonDataKeys.EDITOR);
@@ -85,7 +86,7 @@ public class CodeTriggerCompletionAction extends DumbAwareAction implements Inte
 		}
 	}
 
-	private void updateInlayHints(Editor focusedEditor) {
+	private void updateInlayHints(Editor focusedEditor, Project project) {
 		boolean enableCodeCompletionShaun = EasyCoderSettings.getInstance().isEnableCodeCompletionShaun();
 		String token = PropertiesComponent.getInstance().getValue("easycoder:token");
 		if (StringUtils.isBlank(token) || !enableCodeCompletionShaun || Objects.isNull(focusedEditor) || !EditorUtils.isMainEditor(focusedEditor)) {
@@ -119,7 +120,7 @@ public class CodeTriggerCompletionAction extends DumbAwareAction implements Inte
 		file.putUserData(EasyCoderWidget.EASY_CODER_POSITION, currentPosition);
 		EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
 		CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
-		CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition));
+		CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition, project));
 		future.thenAccept(hintList -> EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
 	}
 
