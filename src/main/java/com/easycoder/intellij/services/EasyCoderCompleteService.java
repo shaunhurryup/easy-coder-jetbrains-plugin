@@ -15,6 +15,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import com.easycoder.intellij.handlers.GlobalStore;
+import com.easycoder.intellij.http.HttpToolkits;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderUtils;
 import com.google.gson.JsonObject;
@@ -55,12 +56,12 @@ public class EasyCoderCompleteService {
         voteStatus().loading();
 
         long startTime = System.currentTimeMillis();
-        System.out.println("=== completion start === ");
         String serverAddress = EasyCoderSettings.getInstance().getServerAddressShaun();
         String apiURL = serverAddress + "/api/easycoder-api/app/session/completions";
         HttpPost httpPost = new HttpPost(apiURL);
 
         httpPost.setHeader("Content-Type", "application/json");
+        httpPost.setHeader("ide", HttpToolkits.getIdeProductName());
 
         JsonObject body = new JsonObject();
         body.addProperty("prefix", prefix);

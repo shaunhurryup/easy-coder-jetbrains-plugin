@@ -30,7 +30,7 @@ public class HttpToolkits {
     return EasyCoderSettings.getInstance().getServerAddressShaun();
   }
 
-  private static String getIdeProductName() {
+  public static String getIdeProductName() {
     // versionName show only product name
     // fullApplicationName show product name + version
     return ApplicationInfo.getInstance().getVersionName();
