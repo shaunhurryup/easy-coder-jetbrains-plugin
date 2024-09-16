@@ -49,7 +49,7 @@ public class EasyCoderCompleteService {
         String generatedText = buildApiPostForBackend(settings, prefix, suffix, widget);
         if (StringUtils.isBlank(generatedText)) {
             codeCompletionProcess.noSuggestion();
-            widget.updateText(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
+            widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
             return new String[] {};
         }
         return new String[] { generatedText };
@@ -65,7 +65,7 @@ public class EasyCoderCompleteService {
             return "";
         }
         codeCompletionProcess.loading();
-        widget.updateText(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
+        widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
 
         long startTime = System.currentTimeMillis();
         String serverAddress = EasyCoderSettings.getInstance().getServerAddressShaun();
@@ -111,15 +111,15 @@ public class EasyCoderCompleteService {
             String result = future.get();
             if (StringUtils.isBlank(result)) {
                 codeCompletionProcess.noSuggestion();
-                widget.updateText(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
+                widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
             } else {
                 codeCompletionProcess.done();
-                widget.updateText(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
+                widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
             }
             return result;
         } catch (InterruptedException | ExecutionException e) {
             codeCompletionProcess.noSuggestion();
-            widget.updateText(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
+            widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
             return "";
         } finally {
             long endTime = System.currentTimeMillis();

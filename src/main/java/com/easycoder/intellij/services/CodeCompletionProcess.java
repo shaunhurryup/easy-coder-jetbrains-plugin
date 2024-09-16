@@ -39,13 +39,13 @@ public class CodeCompletionProcess {
 
     private void updateStatus() {
         if (vote > 0) {
-            text = "EasyCoder: Loading";
+            text = "Loading";
             tooltip = "Extension is running, please wait a moment";
         } else if (vote == 0) {
-            text = "EasyCoder: Done";
+            text = "Done";
             tooltip = "Extension completed";
         } else {
-            text = "EasyCoder: No suggestion";
+            text = "No suggestion";
             tooltip = "No suggestion returned";
         }
     }
