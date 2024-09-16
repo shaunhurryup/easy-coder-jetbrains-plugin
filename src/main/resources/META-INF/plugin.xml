@@ -52,8 +52,6 @@ https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
         <statusBarWidgetFactory id="EasyCoderFactory"
             implementation="com.easycoder.intellij.widget.EasyCoderWidgetFactory"
             order="after positionWidget" />
-        <statusBarWidgetFactory order="first" id="StatusPopupFactory"
-            implementation="com.easycoder.intellij.widget.StatusPopupFactory" />
         <statusBarWidgetFactory id="DynamicStatusBarWidgetFactory" implementation="com.easycoder.intellij.widget.DynamicStatusBarWidgetFactory"/>
         
         <editorActionHandler action="EditorTab"

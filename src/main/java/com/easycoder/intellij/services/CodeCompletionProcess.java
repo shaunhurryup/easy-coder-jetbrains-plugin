@@ -1,17 +1,13 @@
 package com.easycoder.intellij.services;
 
-import com.easycoder.intellij.handlers.GlobalStore;
-import com.easycoder.intellij.widget.DynamicStatusBarWidget;
-import com.easycoder.intellij.widget.StatusPopup;
-import com.easycoder.intellij.widget.StatusPopupFactory;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.WindowManager;
+import lombok.Getter;
 
 public class CodeCompletionProcess {
     private static final int STEP = 1;
     private int vote = 0;
+    @Getter
     private String text = "";
+    @Getter
     private String tooltip = "";
 
     public void done() {
@@ -27,14 +23,6 @@ public class CodeCompletionProcess {
     public void noSuggestion() {
         vote = -1;
         updateStatus();
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public String getTooltip() {
-        return tooltip;
     }
 
     private void updateStatus() {
