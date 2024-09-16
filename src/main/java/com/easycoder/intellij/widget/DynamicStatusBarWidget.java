@@ -160,6 +160,11 @@ public class DynamicStatusBarWidget
         });
     }
 
+    @Override
+    public @Nullable("null means the widget is unable to show the popup") ListPopup getPopupStep() {
+        return null;
+    }
+
     @Nullable
     @Override
     public String getSelectedValue() {

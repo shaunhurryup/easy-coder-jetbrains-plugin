@@ -1,54 +1,55 @@
 package com.easycoder.intellij.widget;
 
-import com.easycoder.intellij.enums.EasyCoderStatus;
-import com.easycoder.intellij.services.EasyCoderCompleteService;
-import com.easycoder.intellij.settings.EasyCoderSettings;
-import com.easycoder.intellij.utils.CodeGenHintRenderer;
-import com.easycoder.intellij.utils.EasyCoderIcons;
-import com.easycoder.intellij.utils.EasyCoderUtils;
-import com.easycoder.intellij.utils.EditorUtils;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.*;
-import com.intellij.openapi.editor.event.*;
-import com.intellij.openapi.editor.impl.EditorComponentImpl;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.NlsContexts;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.openapi.wm.StatusBar;
-import com.intellij.openapi.wm.StatusBarWidget;
-import com.intellij.openapi.wm.impl.status.EditorBasedWidget;
-import com.intellij.openapi.wm.impl.status.TextPanel;
-import com.intellij.util.Consumer;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
+import java.awt.Window;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.easycoder.intellij.services.EasyCoderCompleteService;
+import com.easycoder.intellij.utils.CodeGenHintRenderer;
+import com.easycoder.intellij.utils.EasyCoderUtils;
+import com.easycoder.intellij.utils.EditorUtils;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.InlayModel;
+import com.intellij.openapi.editor.event.BulkAwareDocumentListener;
+import com.intellij.openapi.editor.event.CaretEvent;
+import com.intellij.openapi.editor.event.CaretListener;
+import com.intellij.openapi.editor.event.EditorEventMulticaster;
+import com.intellij.openapi.editor.event.SelectionEvent;
+import com.intellij.openapi.editor.event.SelectionListener;
+import com.intellij.openapi.editor.impl.EditorComponentImpl;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.openapi.wm.StatusBar;
+import com.intellij.openapi.wm.StatusBarWidget;
+import com.intellij.openapi.wm.impl.status.EditorBasedWidget;
+import com.intellij.openapi.wm.StatusBarWidget.WidgetPresentation;
+import java.awt.event.MouseEvent;
+import java.util.function.Consumer;
+
 public class EasyCoderWidget extends EditorBasedWidget
-        implements StatusBarWidget.Multiframe, StatusBarWidget.IconPresentation,
+        implements StatusBarWidget.Multiframe,
         CaretListener, SelectionListener, BulkAwareDocumentListener.Simple, PropertyChangeListener {
     public static final String ID = "EasyCoderWidget";
 
     public static final Key<String[]> EASY_CODER_CODE_SUGGESTION = new Key<>("EasyCoder Code Suggestion");
     public static final Key<Integer> EASY_CODER_POSITION = new Key<>("EasyCoder Position");
     public static boolean enableSuggestion = false;
-    private final TextPanel.WithIconAndArrows panel = new TextPanel.WithIconAndArrows();
-
-
 
     protected EasyCoderWidget(@NotNull Project project) {
         super(project);
@@ -65,68 +66,6 @@ public class EasyCoderWidget extends EditorBasedWidget
     }
 
     @Override
-    public @Nullable Icon getIcon() {
-        // EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
-        // EasyCoderStatus status = EasyCoderStatus.getStatusByCode(easyCoder.getStatus());
-        EasyCoderStatus status = EasyCoderStatus.getStatusByCode(0);
-        if (status == EasyCoderStatus.OK) {
-            return EasyCoderSettings.getInstance().isSaytEnabled() ? EasyCoderIcons.WidgetEnabled : EasyCoderIcons.WidgetDisabled;
-        } else {
-            return EasyCoderIcons.WidgetError;
-        }
-    }
-
-    @Override
-    public WidgetPresentation getPresentation() {
-        return this;
-    }
-
-    @Override
-    public @Nullable @NlsContexts.Tooltip String getTooltipText() {
-        StringBuilder toolTipText = new StringBuilder("EasyCoder");
-        if (EasyCoderSettings.getInstance().isSaytEnabled()) {
-            toolTipText.append(" enabled");
-        } else {
-            toolTipText.append(" disabled");
-        }
-
-        EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
-        int statusCode = 0;
-        // int statusCode = easyCoder.getStatus();
-        EasyCoderStatus status = EasyCoderStatus.getStatusByCode(statusCode);
-        switch (status) {
-            case OK:
-                if (EasyCoderSettings.getInstance().isSaytEnabled()) {
-                    toolTipText.append(" (Click to disable)");
-                } else {
-                    toolTipText.append(" (Click to enable)");
-                }
-                break;
-            case UNKNOWN:
-                toolTipText.append(" (http error ");
-                toolTipText.append(statusCode);
-                toolTipText.append(")");
-                break;
-            default:
-                toolTipText.append(" (");
-                toolTipText.append(status.getDisplayValue());
-                toolTipText.append(")");
-        }
-
-        return toolTipText.toString();
-    }
-
-    @Override
-    public @Nullable Consumer<MouseEvent> getClickConsumer() {
-        return mouseEvent -> {
-            EasyCoderSettings.getInstance().toggleSaytEnabled();
-            if (Objects.nonNull(myStatusBar)) {
-                myStatusBar.updateWidget(ID);
-            }
-        };
-    }
-
-    @Override
     public void install(@NotNull StatusBar statusBar) {
         super.install(statusBar);
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
@@ -136,13 +75,13 @@ public class EasyCoderWidget extends EditorBasedWidget
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", this);
         Disposer.register(this,
                 () -> KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner",
-                        this)
-        );
+                        this));
     }
 
     private Editor getFocusOwnerEditor() {
         Component component = getFocusOwnerComponent();
-        Editor editor = component instanceof EditorComponentImpl ? ((EditorComponentImpl) component).getEditor() : getEditor();
+        Editor editor = component instanceof EditorComponentImpl ? ((EditorComponentImpl) component).getEditor()
+                : getEditor();
         return Objects.nonNull(editor) && !editor.isDisposed() && EditorUtils.isMainEditor(editor) ? editor : null;
     }
 
@@ -216,8 +155,10 @@ public class EasyCoderWidget extends EditorBasedWidget
                 file.putUserData(EASY_CODER_POSITION, focusedEditor.getCaretModel().getOffset());
 
                 InlayModel inlayModel = focusedEditor.getInlayModel();
-                inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-                inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+                inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
+                        .forEach(EasyCoderUtils::disposeInlayHints);
+                inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength())
+                        .forEach(EasyCoderUtils::disposeInlayHints);
             }
             return;
         }
@@ -226,14 +167,16 @@ public class EasyCoderWidget extends EditorBasedWidget
         int lastPosition = (Objects.isNull(easyCoderPos)) ? 0 : easyCoderPos;
         int currentPosition = focusedEditor.getCaretModel().getOffset();
 
-        if (lastPosition == currentPosition) return;
+        if (lastPosition == currentPosition)
+            return;
 
         InlayModel inlayModel = focusedEditor.getInlayModel();
         if (currentPosition > lastPosition) {
             String[] existingHints = file.getUserData(EASY_CODER_CODE_SUGGESTION);
             if (Objects.nonNull(existingHints) && existingHints.length > 0) {
                 String inlineHint = existingHints[0];
-                String modifiedText = focusedEditor.getDocument().getCharsSequence().subSequence(lastPosition, currentPosition).toString();
+                String modifiedText = focusedEditor.getDocument().getCharsSequence()
+                        .subSequence(lastPosition, currentPosition).toString();
                 if (modifiedText.startsWith("\n")) {
                     modifiedText = modifiedText.replace(" ", "");
                 }
@@ -241,7 +184,8 @@ public class EasyCoderWidget extends EditorBasedWidget
                     inlineHint = inlineHint.substring(modifiedText.length());
                     enableSuggestion = false;
                     if (inlineHint.length() > 0) {
-                        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+                        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
+                                .forEach(EasyCoderUtils::disposeInlayHints);
                         inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
                         existingHints[0] = inlineHint;
 
@@ -259,20 +203,51 @@ public class EasyCoderWidget extends EditorBasedWidget
             }
         }
 
-        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-        inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
+        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
+                .forEach(EasyCoderUtils::disposeInlayHints);
+        inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength())
+                .forEach(EasyCoderUtils::disposeInlayHints);
 
         file.putUserData(EASY_CODER_POSITION, currentPosition);
         // fixed: 删除也要有代码补全
         // if(!enableSuggestion || currentPosition < lastPosition){
-        if(!enableSuggestion){
+        if (!enableSuggestion) {
             enableSuggestion = false;
             return;
         }
-        EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
+        EasyCoderCompleteService easyCoder = ApplicationManager.getApplication()
+                .getService(EasyCoderCompleteService.class);
         CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
-        CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition, getProject()));
+        CompletableFuture<String[]> future = CompletableFuture
+                .supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition, getProject()));
         future.thenAccept(hintList -> EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
     }
 
+    @Override
+    public @Nullable WidgetPresentation getPresentation() {
+        return new StatusBarWidget.TextPresentation() {
+            @NotNull
+            @Override
+            public String getText() {
+                return ""; // Return an empty string instead of null
+            }
+
+            @Override
+            public float getAlignment() {
+                return Component.LEFT_ALIGNMENT;
+            }
+
+            @Nullable
+            @Override
+            public String getTooltipText() {
+                return null;
+            }
+
+            @Nullable
+            @Override
+            public com.intellij.util.Consumer<MouseEvent> getClickConsumer() {
+                return null;
+            }
+        };
+    }
 }
