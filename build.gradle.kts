@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.easycoder.intellij"
-version = "0.0.5"
+version = "0.0.7"
 
 repositories {
     mavenCentral()
@@ -18,10 +18,8 @@ dependencies {
 }
 
 intellij {
-    // 设置为 LATEST-EAP-SNAPSHOT,这样可以兼容最新的 EAP 版本
     version.set("LATEST-EAP-SNAPSHOT")
-    // 将插件类型设置为 IC (IntelliJ Community),这样可以兼容社区版和旗舰版
-    type.set("IC") 
+    type.set("IC")
 }
 
 tasks {
@@ -32,10 +30,7 @@ tasks {
     }
 
     patchPluginXml {
-        // 设置最低兼容版本为 2022.1
-        sinceBuild.set("243")
-        // 移除 untilBuild 的设置,这样可以兼容未来的所有版本
-        // untilBuild.set("301.*")
+        sinceBuild.set("221")
     }
 
     signPlugin {
