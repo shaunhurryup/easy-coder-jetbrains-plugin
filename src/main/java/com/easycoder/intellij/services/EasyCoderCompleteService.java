@@ -47,7 +47,12 @@ public class EasyCoderCompleteService {
                 EasyCoderUtils.suffixHandle(cursorPosition, editorContents.length()));
 
         String generatedText = buildApiPostForBackend(settings, prefix, suffix, widget);
-        if (StringUtils.isBlank(generatedText)) {
+        // only return empty array when generatedText is empty
+        // null means some error occurred
+        if (generatedText == null) {
+            return new String[] { "" };
+        }
+        if ("".equals(generatedText)) {
             codeCompletionProcess.noSuggestion();
             widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
             return new String[] {};
@@ -62,7 +67,9 @@ public class EasyCoderCompleteService {
             DynamicStatusBarWidget widget) {
         String token = PropertiesComponent.getInstance().getValue("easycoder:token");
         if (token == null) {
-            return "";
+            codeCompletionProcess.needSignIn();
+            widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
+            return null;
         }
         codeCompletionProcess.loading();
         widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
@@ -118,9 +125,9 @@ public class EasyCoderCompleteService {
             }
             return result;
         } catch (InterruptedException | ExecutionException e) {
-            codeCompletionProcess.noSuggestion();
+            codeCompletionProcess.serverError();
             widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
-            return "";
+            return null;
         } finally {
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;

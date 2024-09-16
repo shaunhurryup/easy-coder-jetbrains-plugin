@@ -25,16 +25,38 @@ public class CodeCompletionProcess {
         updateStatus();
     }
 
+    public void needSignIn() {
+        vote = -2;
+        updateStatus();
+    }
+
+    public void serverError() {
+        vote = -3;
+        updateStatus();
+    }
+
     private void updateStatus() {
-        if (vote > 0) {
-            text = "Loading";
-            tooltip = "Extension is running, please wait a moment";
-        } else if (vote == 0) {
-            text = "Done";
-            tooltip = "Extension completed";
-        } else {
-            text = "No suggestion";
-            tooltip = "No suggestion returned";
+        switch (vote) {
+            case 0 -> {
+                text = "Done";
+                tooltip = "Extension completed";
+            }
+            case -1 -> {
+                text = "No Suggestion";
+                tooltip = "No suggestion returned";
+            }
+            case -2 -> {
+                text = "Need Sign In";
+                tooltip = "Please sign in to the extension first";
+            }
+            case -3 -> {
+                text = "Server Error";
+                tooltip = "Some error occurred in the server";
+            }
+            default -> {
+                text = "Loading";
+                tooltip = "Extension is running, please wait a moment";
+            }
         }
     }
 }
