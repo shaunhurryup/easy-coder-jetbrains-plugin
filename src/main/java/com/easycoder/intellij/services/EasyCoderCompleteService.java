@@ -30,14 +30,14 @@ public class EasyCoderCompleteService {
 
     private CodeCompletionProcess codeCompletionProcess;
 
+    public EasyCoderCompleteService() {
+        codeCompletionProcess = new CodeCompletionProcess();
+    }
+
     public String[] getCodeCompletionHints(CharSequence editorContents, int cursorPosition, Project project) {
         DynamicStatusBarWidget widget = (DynamicStatusBarWidget) WindowManager.getInstance()
                 .getStatusBar(project)
                 .getWidget("DynamicStatusBarWidget");
-
-        if (widget != null) {
-            widget.updateText(String.valueOf(Math.random()));
-        }
 
         EasyCoderSettings settings = EasyCoderSettings.getInstance();
         String contents = editorContents.toString();
@@ -46,20 +46,26 @@ public class EasyCoderCompleteService {
         String suffix = contents.substring(cursorPosition,
                 EasyCoderUtils.suffixHandle(cursorPosition, editorContents.length()));
 
-        String generatedText = buildApiPostForBackend(settings, prefix, suffix);
+        String generatedText = buildApiPostForBackend(settings, prefix, suffix, widget);
         if (StringUtils.isBlank(generatedText)) {
             codeCompletionProcess.noSuggestion();
+            widget.updateText(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
             return new String[] {};
         }
         return new String[] { generatedText };
     }
 
-    private String buildApiPostForBackend(EasyCoderSettings settings, String prefix, String suffix) {
+    private String buildApiPostForBackend(
+            EasyCoderSettings settings,
+            String prefix,
+            String suffix,
+            DynamicStatusBarWidget widget) {
         String token = PropertiesComponent.getInstance().getValue("easycoder:token");
         if (token == null) {
             return "";
         }
         codeCompletionProcess.loading();
+        widget.updateText(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
 
         long startTime = System.currentTimeMillis();
         String serverAddress = EasyCoderSettings.getInstance().getServerAddressShaun();
@@ -105,12 +111,15 @@ public class EasyCoderCompleteService {
             String result = future.get();
             if (StringUtils.isBlank(result)) {
                 codeCompletionProcess.noSuggestion();
+                widget.updateText(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
             } else {
                 codeCompletionProcess.done();
+                widget.updateText(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
             }
             return result;
         } catch (InterruptedException | ExecutionException e) {
             codeCompletionProcess.noSuggestion();
+            widget.updateText(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
             return "";
         } finally {
             long endTime = System.currentTimeMillis();

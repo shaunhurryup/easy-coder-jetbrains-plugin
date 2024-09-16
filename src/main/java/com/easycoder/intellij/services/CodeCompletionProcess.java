@@ -11,6 +11,8 @@ import com.intellij.openapi.wm.WindowManager;
 public class CodeCompletionProcess {
     private static final int STEP = 1;
     private int vote = 0;
+    private String text = "";
+    private String tooltip = "";
 
     public void done() {
         vote = Math.max(1, vote) - STEP;
@@ -27,18 +29,24 @@ public class CodeCompletionProcess {
         updateStatus();
     }
 
+    public String getText() {
+        return text;
+    }
+
+    public String getTooltip() {
+        return tooltip;
+    }
+
     private void updateStatus() {
-        ApplicationManager.getApplication().invokeLater(() -> {
-            if (vote > 0) {
-                GlobalStore.text = "EasyCoder: Loading";
-                GlobalStore.tooltip = "Extension is running, please wait a moment";
-            } else if (vote == 0) {
-                GlobalStore.text = "EasyCoder: Done";
-                GlobalStore.tooltip = "Extension completed";
-            } else {
-                GlobalStore.text = "EasyCoder: No suggestion";
-                GlobalStore.tooltip = "No suggestion returned";
-            }
-        });
+        if (vote > 0) {
+            text = "EasyCoder: Loading";
+            tooltip = "Extension is running, please wait a moment";
+        } else if (vote == 0) {
+            text = "EasyCoder: Done";
+            tooltip = "Extension completed";
+        } else {
+            text = "EasyCoder: No suggestion";
+            tooltip = "No suggestion returned";
+        }
     }
 }

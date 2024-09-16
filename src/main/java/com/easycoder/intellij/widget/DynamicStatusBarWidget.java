@@ -32,6 +32,7 @@ import com.easycoder.intellij.settings.EasyCoderSettings;
 public class DynamicStatusBarWidget implements StatusBarWidget, StatusBarWidget.TextPresentation {
     private final Project project;
     private String text = "Initial Status";
+    private String tooltipText = "Dynamic Status Bar Widget";
 
     public DynamicStatusBarWidget(Project project) {
         this.project = project;
@@ -66,7 +67,7 @@ public class DynamicStatusBarWidget implements StatusBarWidget, StatusBarWidget.
     @Nullable
     @Override
     public String getTooltipText() {
-        return "Dynamic Status Bar Widget";
+        return tooltipText;
     }
 
     @Nullable
@@ -81,8 +82,9 @@ public class DynamicStatusBarWidget implements StatusBarWidget, StatusBarWidget.
         };
     }
 
-    public void updateText(String newText) {
+    public void updateText(String newText, String newTooltipText) {
         this.text = newText;
+        this.tooltipText = newTooltipText;
         if (project != null && !project.isDisposed()) {
             StatusBar statusBar = WindowManager.getInstance().getStatusBar(project);
             if (statusBar != null) {
@@ -101,7 +103,7 @@ public class DynamicStatusBarWidget implements StatusBarWidget, StatusBarWidget.
         boolean isLoginIn = PropertiesComponent.getInstance().getValue("easycoder:token") != null;
         String firstOption = isLoginIn ? Const.LOGIN_OUT : Const.LOGIN_IN;
 
-        BaseListPopupStep<String> firstStep = new BaseListPopupStep<>("EasyCoder Status", Arrays.asList(firstOption)) {
+        BaseListPopupStep<String> firstStep = new BaseListPopupStep<>(tooltipText, Arrays.asList(firstOption)) {
             @Override
             public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
                 if (Const.LOGIN_IN.equals(selectedValue)) {
@@ -109,7 +111,7 @@ public class DynamicStatusBarWidget implements StatusBarWidget, StatusBarWidget.
                 } else if (Const.LOGIN_OUT.equals(selectedValue)) {
                     HttpToolkits.signOut(project);
                 }
-                ApplicationManager.getApplication().invokeLater(() -> updateText("Status updated"));
+                ApplicationManager.getApplication().invokeLater(() -> updateText("Status updated", "Status updated"));
                 return FINAL_CHOICE;
             }
         };
@@ -142,7 +144,7 @@ public class DynamicStatusBarWidget implements StatusBarWidget, StatusBarWidget.
                     HttpToolkits.signIn(project, map);
                 }
             } finally {
-                ApplicationManager.getApplication().invokeLater(() -> updateText("Login status changed"));
+                ApplicationManager.getApplication().invokeLater(() -> updateText("Login status changed", "Login status changed"));
             }
         });
     }
