@@ -26,14 +26,14 @@ intellij {
 
 tasks {
     withType<JavaCompile> {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
         options.encoding = "UTF-8"
     }
 
     patchPluginXml {
         // 设置最低兼容版本为 2022.1
-        sinceBuild.set("221")
+        sinceBuild.set("243")
         // 移除 untilBuild 的设置,这样可以兼容未来的所有版本
         // untilBuild.set("301.*")
     }
