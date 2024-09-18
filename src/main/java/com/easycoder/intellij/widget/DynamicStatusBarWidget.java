@@ -1,14 +1,17 @@
 package com.easycoder.intellij.widget;
 
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import javax.swing.Icon;
+import javax.swing.*;
 
+import com.intellij.openapi.wm.impl.status.IdeStatusBarImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +35,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.Consumer;
 
 public class DynamicStatusBarWidget
-        implements StatusBarWidget,StatusBarWidget.TextPresentation {
+        implements StatusBarWidget, StatusBarWidget.TextPresentation {
     private final Project project;
     private String text = "Ready";
     private String tooltipText = "I am ready to help you";
@@ -55,12 +58,12 @@ public class DynamicStatusBarWidget
     }
 
     @Override
-    public void install(@NotNull StatusBar statusBar) {}
+    public void install(@NotNull StatusBar statusBar) {
+    }
 
     @Override
     public void dispose() {
     }
-
 
     @Nullable
     @Override
@@ -82,7 +85,7 @@ public class DynamicStatusBarWidget
     // @Nullable
     // @Override
     // public Icon getIcon() {
-    //     return currentIcon;
+    // return currentIcon;
     // }
 
     public void updateWidget(String newText, String newTooltipText) {
@@ -120,11 +123,23 @@ public class DynamicStatusBarWidget
     private void showPopupAboveStatusBar(JBPopup popup, MouseEvent mouseEvent) {
         StatusBar statusBar = WindowManager.getInstance().getStatusBar(project);
         if (statusBar != null) {
+            JComponent widgetComponent = ((IdeStatusBarImpl) statusBar).getWidgetComponent(ID());
+
+            Point widgetOnScreen = widgetComponent.getLocationOnScreen();
             Dimension popupSize = popup.getContent().getPreferredSize();
-            java.awt.Point statusBarLocation = statusBar.getComponent().getLocationOnScreen();
-            int x = statusBarLocation.x + (statusBar.getComponent().getWidth() / 2) - (popupSize.width / 2);
-            int y = statusBarLocation.y - popupSize.height;
-            popup.show(new RelativePoint(new java.awt.Point(x, y)));
+
+            Component statusBarComponent = statusBar.getComponent();
+            Point statusBarLocation = statusBarComponent.getLocationOnScreen();
+
+            // 计算相对于状态栏的x坐标
+            int relativeX = widgetOnScreen.x - statusBarLocation.x;
+            int relativeY = widgetOnScreen.y - statusBarLocation.y - popupSize.height;
+
+            // 确保 Popup 不超出屏幕边界
+            // 这里可以根据需要添加边界检查
+
+            // 设置 Popup 的位置，使其左侧与按钮左侧对齐
+            popup.show(new RelativePoint(statusBarComponent, new Point(relativeX, relativeY)));
         }
     }
 
