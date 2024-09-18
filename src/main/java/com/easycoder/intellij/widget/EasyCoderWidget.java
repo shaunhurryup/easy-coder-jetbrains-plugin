@@ -114,11 +114,15 @@ public class EasyCoderWidget extends EditorBasedWidget
 
     @Override
     public void caretPositionChanged(@NotNull CaretEvent event) {
-        // updateInlayHints(event.getEditor());
-        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
-            .forEach(EasyCoderUtils::disposeInlayHints);
-        inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength())
-            .forEach(EasyCoderUtils::disposeInlayHints);
+        updateInlayHints(event.getEditor());
+        // todo: 仅当 tab 触发的 caret position changed 才需要请求代码续写
+        // 其他情况，比如按方向键移动光标，不应该请求代码续写
+        // Editor focusedEditor = event.getEditor();
+        // InlayModel inlayModel = focusedEditor.getInlayModel();
+        // inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
+        //         .forEach(EasyCoderUtils::disposeInlayHints);
+        // inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength())
+        //         .forEach(EasyCoderUtils::disposeInlayHints);
     }
 
     @Override
@@ -224,11 +228,11 @@ public class EasyCoderWidget extends EditorBasedWidget
         CompletableFuture<String[]> future = CompletableFuture
                 .supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition, getProject()));
         future
-            .thenAccept(hintList -> {
-                ApplicationManager.getApplication().invokeLater(() -> {
-                    EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList);
+                .thenAccept(hintList -> {
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList);
+                    });
                 });
-            });
     }
 
     @Override
