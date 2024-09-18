@@ -26,6 +26,7 @@ public class EasyCoderUtils {
         String sufText = "\n```" + language + "\n" + text + "\n```\n";
         return String.format(preText, language, sufText);
     }
+
     public static int prefixHandle(int begin, int end) {
         if (end - begin > 3000) {
             return end - 3000;
@@ -33,6 +34,7 @@ public class EasyCoderUtils {
             return begin;
         }
     }
+
     public static int suffixHandle(int begin, int end) {
         if (end - begin > 256) {
             return begin + 256;
@@ -41,7 +43,7 @@ public class EasyCoderUtils {
         }
     }
 
-    public static JsonObject pakgHttpRequestBodyForCPU(EasyCoderSettings settings, String prefix, String suffix){
+    public static JsonObject pakgHttpRequestBodyForCPU(EasyCoderSettings settings, String prefix, String suffix) {
         JsonObject httpBody = new JsonObject();
         httpBody.addProperty("input_prefix", prefix);
         httpBody.addProperty("input_suffix", suffix);
@@ -50,17 +52,19 @@ public class EasyCoderUtils {
         httpBody.addProperty("repetition_penalty", 1.0);
         httpBody.addProperty("top_k", 10);
         httpBody.addProperty("top_p", 0.95);
-//        httpBody.addProperty("prompt", PrefixString.REQUST_END_TAG + easyCoderPrompt);
-//        httpBody.addProperty("frequency_penalty", 1.2);
-//        httpBody.addProperty("n_predict", Integer.parseInt(settings.getCompletionMaxToken().getDescription()));
-//        httpBody.addProperty("stream", false);
-//        JsonArray stopArray = new JsonArray();
-//        stopArray.add("|<end>|");
-//        httpBody.add("stop", stopArray);
+        // httpBody.addProperty("prompt", PrefixString.REQUST_END_TAG +
+        // easyCoderPrompt);
+        // httpBody.addProperty("frequency_penalty", 1.2);
+        // httpBody.addProperty("n_predict",
+        // Integer.parseInt(settings.getCompletionMaxToken().getDescription()));
+        // httpBody.addProperty("stream", false);
+        // JsonArray stopArray = new JsonArray();
+        // stopArray.add("|<end>|");
+        // httpBody.add("stop", stopArray);
         return httpBody;
     }
 
-    public static JsonObject pakgHttpRequestBodyForGPU(EasyCoderSettings settings, String easyCoderPrompt){
+    public static JsonObject pakgHttpRequestBodyForGPU(EasyCoderSettings settings, String easyCoderPrompt) {
         JsonObject httpBody = new JsonObject();
         httpBody.addProperty("inputs", easyCoderPrompt);
         JsonObject parameters = new JsonObject();
@@ -69,7 +73,8 @@ public class EasyCoderUtils {
         return httpBody;
     }
 
-    public static String parseHttpResponseContentForCPU(EasyCoderSettings settings, String responseBody, Pattern pattern){
+    public static String parseHttpResponseContentForCPU(EasyCoderSettings settings, String responseBody,
+            Pattern pattern) {
         String generatedText = "";
         Matcher matcher = pattern.matcher(responseBody);
         StringBuilder contentBuilder = new StringBuilder();
@@ -77,7 +82,7 @@ public class EasyCoderUtils {
             String jsonString = matcher.group(1);
             JSONObject json = JSONObject.parseObject(jsonString);
             String content = json.getString("content");
-            if(StringUtils.equalsAny(content, "<|endoftext|>", "")){
+            if (StringUtils.equalsAny(content, "<|endoftext|>", "")) {
                 continue;
             }
             contentBuilder.append(content);
@@ -85,7 +90,7 @@ public class EasyCoderUtils {
         return contentBuilder.toString().replace(PrefixString.RESPONSE_END_TAG, "");
     }
 
-    public static String parseHttpResponseContentForGPU(EasyCoderSettings settings, String responseBody){
+    public static String parseHttpResponseContentForGPU(EasyCoderSettings settings, String responseBody) {
         String generatedText = "";
         Gson gson = new Gson();
         GenerateModel generateModel = gson.fromJson(responseBody, GenerateModel.class);
@@ -110,30 +115,34 @@ public class EasyCoderUtils {
         return version;
     }
 
-    public static void addCodeSuggestion(Editor focusedEditor, VirtualFile file, int suggestionPosition, String[] hintList) {
+    public static void addCodeSuggestion(Editor focusedEditor, VirtualFile file, int suggestionPosition,
+            String[] hintList) {
         ApplicationManager.getApplication().invokeLater(() -> {
             if (suggestionPosition == file.getUserData(EasyCoderWidget.EASY_CODER_POSITION)) {
                 file.putUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION, hintList);
-                
-                // InlayModel inlayModel = editor.getInlayModel();
-                // for (String hint : hintList) {
-                //     String[] lines = hint.split("\n");
-                //     for (int i = 0; i < lines.length; i++) {
-                //         int linePosition = editor.getDocument().getLineEndOffset(editor.getDocument().getLineNumber(position) + i);
-                //         
-                //         inlayModel.addAfterLineEndElement(linePosition, false, new CodeGenHintRenderer(lines[i]));
-                //     }
-                // }
 
                 InlayModel inlayModel = focusedEditor.getInlayModel();
-                inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-                inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
-                if (Objects.nonNull(hintList) && hintList.length > 0) {
-                    if (!hintList[0].trim().isEmpty()) {
-                        inlayModel.addInlineElement(suggestionPosition, true, new CodeGenHintRenderer(hintList[0]));
+                inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
+                        .forEach(EasyCoderUtils::disposeInlayHints);
+                inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength())
+                        .forEach(EasyCoderUtils::disposeInlayHints);
+                if (Objects.isNull(hintList) || hintList.length == 0) {
+                    return;
+                }
+                for (int i = 0; i < hintList.length; i++) {
+                    String hint = hintList[i];
+                    if (hint.trim().isEmpty()) {
+                        continue;
                     }
-                    for (int i = 1; i < hintList.length; i++) {
-                        inlayModel.addBlockElement(suggestionPosition, false, false, 0, new CodeGenHintRenderer(hintList[i]));
+                    String[] split = hint.split("\n");
+                    for (int j = 0; j < split.length; j++) {
+                        String line = split[j];
+                        if (j == 0) {
+                            inlayModel.addInlineElement(suggestionPosition, true, new CodeGenHintRenderer(line));
+                        } else {
+                            inlayModel.addBlockElement(suggestionPosition, false, false, 0,
+                                    new CodeGenHintRenderer(line));
+                        }
                     }
                 }
             }

@@ -39,15 +39,13 @@ public class CodeGenHintRenderer implements EditorCustomElementRenderer {
         Editor editor = inlay.getEditor();
         Font font = editor.getColorsScheme().getFont(EditorFontType.PLAIN);
         g.setFont(font);
-        
+
         g.setColor(JBColor.GRAY);
 
         FontMetrics fontMetrics = g.getFontMetrics();
         int lineHeight = editor.getLineHeight();
-        
-        // 调整基线位置，使幽灵文本与编辑器内容高度完全一致
+
         for (int i = 0; i < lines.length; i++) {
-            // int y = r.y + (i + 1) * lineHeight - fontMetrics.getAscent() + fontMetrics.getDescent();
             int y = r.y + (i + 1) * lineHeight - fontMetrics.getMaxAdvance();
             g.drawString(lines[i], r.x, y);
         }
