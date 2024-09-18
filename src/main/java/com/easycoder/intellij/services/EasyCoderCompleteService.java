@@ -107,12 +107,21 @@ public class EasyCoderCompleteService {
                 httpClient.close();
 
                 JsonObject jsonResponse = JsonParser.parseString(responseBody).getAsJsonObject();
-                return jsonResponse.getAsJsonObject("data").get("content").getAsString();
+                JsonObject data = jsonResponse.getAsJsonObject("data");
+                if (data.get("code").getAsInt() != 200) {
+                    System.out.println("Fetching ghost text error: " + data.get("message").getAsString());
+                    return "";
+                }
+                return data.get("content").getAsString();
             } catch (Exception e) {
+                System.out.println("Fetching ghost text error: " + e.getMessage());
                 return "";
             }
         }).orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
-                .exceptionally(e -> "");
+                .exceptionally(e -> {
+                    System.out.println("Fetching ghost text timeout: " + e.getMessage());
+                    return "";
+                });
 
         try {
             String result = future.get();
@@ -131,7 +140,7 @@ public class EasyCoderCompleteService {
         } finally {
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
-            System.out.println("fetch ghost text duration: " + duration + " ms");
+            System.out.println("Fetching ghost text duration: " + duration + " ms");
         }
     }
 
