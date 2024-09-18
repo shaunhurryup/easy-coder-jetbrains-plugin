@@ -3,6 +3,7 @@ package com.easycoder.intellij.widget;
 import java.awt.Component;
 import java.awt.KeyboardFocusManager;
 import java.awt.Window;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Arrays;
@@ -26,8 +27,6 @@ import com.intellij.openapi.editor.event.BulkAwareDocumentListener;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.editor.event.EditorEventMulticaster;
-import com.intellij.openapi.editor.event.SelectionEvent;
-import com.intellij.openapi.editor.event.SelectionListener;
 import com.intellij.openapi.editor.impl.EditorComponentImpl;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -37,14 +36,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.StatusBarWidget;
-import com.intellij.openapi.wm.impl.status.EditorBasedWidget;
 import com.intellij.openapi.wm.StatusBarWidget.WidgetPresentation;
-import java.awt.event.MouseEvent;
-import java.util.function.Consumer;
+import com.intellij.openapi.wm.impl.status.EditorBasedWidget;
 
 public class EasyCoderWidget extends EditorBasedWidget
         implements StatusBarWidget.Multiframe,
-        CaretListener, SelectionListener, BulkAwareDocumentListener.Simple, PropertyChangeListener {
+        CaretListener, BulkAwareDocumentListener.Simple, PropertyChangeListener {
     public static final String ID = "EasyCoderWidget";
 
     public static final Key<String[]> EASY_CODER_CODE_SUGGESTION = new Key<>("EasyCoder Code Suggestion");
@@ -70,7 +67,6 @@ public class EasyCoderWidget extends EditorBasedWidget
         super.install(statusBar);
         EditorEventMulticaster multicaster = EditorFactory.getInstance().getEventMulticaster();
         multicaster.addCaretListener(this, this);
-        multicaster.addSelectionListener(this, this);
         multicaster.addDocumentListener(this, this);
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", this);
         Disposer.register(this,
@@ -107,10 +103,6 @@ public class EasyCoderWidget extends EditorBasedWidget
         updateInlayHints(getFocusOwnerEditor());
     }
 
-    @Override
-    public void selectionChanged(SelectionEvent event) {
-        updateInlayHints(event.getEditor());
-    }
 
     @Override
     public void caretPositionChanged(@NotNull CaretEvent event) {
@@ -152,22 +144,6 @@ public class EasyCoderWidget extends EditorBasedWidget
         }
         VirtualFile file = FileDocumentManager.getInstance().getFile(focusedEditor.getDocument());
         if (Objects.isNull(file)) {
-            return;
-        }
-
-        String selection = focusedEditor.getCaretModel().getCurrentCaret().getSelectedText();
-        if (Objects.nonNull(selection) && !selection.isEmpty()) {
-            String[] existingHints = file.getUserData(EASY_CODER_CODE_SUGGESTION);
-            if (Objects.nonNull(existingHints) && existingHints.length > 0) {
-                file.putUserData(EASY_CODER_CODE_SUGGESTION, null);
-                file.putUserData(EASY_CODER_POSITION, focusedEditor.getCaretModel().getOffset());
-
-                InlayModel inlayModel = focusedEditor.getInlayModel();
-                inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
-                        .forEach(EasyCoderUtils::disposeInlayHints);
-                inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength())
-                        .forEach(EasyCoderUtils::disposeInlayHints);
-            }
             return;
         }
 
