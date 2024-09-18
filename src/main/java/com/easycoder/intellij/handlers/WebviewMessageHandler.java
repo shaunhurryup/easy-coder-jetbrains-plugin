@@ -10,6 +10,8 @@ import com.easycoder.intellij.enums.MessageId;
 import com.easycoder.intellij.http.HttpToolkits;
 import com.easycoder.intellij.listener.ThemeListener;
 import com.easycoder.intellij.model.WebviewMessage;
+import com.easycoder.intellij.notification.ModalHelper;
+import com.easycoder.intellij.notification.NotificationHelper;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.google.gson.Gson;
@@ -32,6 +34,25 @@ public class WebviewMessageHandler {
 
     public static WebviewMessage run(WebviewMessage message, Project project) {
         MessageId messageId = message.getId();
+        if (messageId.equals(MessageId.ShowWarnModal)) {
+            String value = message.getPayload().get("value").getAsString();
+            ModalHelper.showWarning(project, value, "WARNING");
+        }
+
+        if (messageId.equals(MessageId.ShowErrorMessage)) {
+            String value = message.getPayload().get("value").getAsString();
+            NotificationHelper.error(value);
+        }
+
+        if (messageId.equals(MessageId.ShowWarnMessage)) {
+            String value = message.getPayload().get("value").getAsString();
+            NotificationHelper.warn(value);
+        }
+
+        if (messageId.equals(MessageId.ShowInfoMessage)) {
+            String value = message.getPayload().get("value").getAsString();
+            NotificationHelper.info(value);
+        }
 
         if (messageId.equals(MessageId.InsertIntoEditor)) {
             String value = message.getPayload().get("value").getAsString();
@@ -160,7 +181,7 @@ public class WebviewMessageHandler {
         if (messageId.equals(MessageId.WebviewMount)) {
             // language
             project.getService(EasyCoderSideWindowService.class)
-                .notifyIdeAppInstance(new Gson().toJson(EasyCoderSettings.getInstance().getSettings()));
+                .notifyIdeAppInstance(EasyCoderSettings.getInstance().getSettings());
 
             String token = PropertiesComponent.getInstance().getValue("easycoder:token");
             String username = PropertiesComponent.getInstance().getValue("easycoder:username");

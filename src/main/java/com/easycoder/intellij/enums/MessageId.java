@@ -44,6 +44,7 @@ public enum MessageId {
     ShowErrorMessage, // Webview 创建 vscode 错误消息弹窗
     ShowWarnMessage, // Webview 创建 vscode 警告消息弹窗
     ShowInfoMessage, // Webview 创建 vscode 通知消息弹窗
+    ShowWarnModal, // Webview 创建 vscode 警告弹窗
     ToastWarning, // 显示警告提示
 
     // 编辑器操作

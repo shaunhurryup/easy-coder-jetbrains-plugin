@@ -4,19 +4,21 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 
-import com.intellij.openapi.wm.impl.status.IdeStatusBarImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.easycoder.intellij.constant.Const;
 import com.easycoder.intellij.http.HttpToolkits;
+import com.easycoder.intellij.notification.ModalHelper;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderIcons;
 import com.intellij.ide.BrowserUtil;
@@ -29,8 +31,8 @@ import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.openapi.wm.StatusBar;
 import com.intellij.openapi.wm.StatusBarWidget;
-import com.intellij.openapi.wm.StatusBarWidget.MultipleTextValuesPresentation;
 import com.intellij.openapi.wm.WindowManager;
+import com.intellij.openapi.wm.impl.status.IdeStatusBarImpl;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.Consumer;
 
@@ -147,6 +149,15 @@ public class DynamicStatusBarWidget
         String uuid = UUID.randomUUID().toString();
 
         String serverAddress = EasyCoderSettings.getInstance().getServerAddressShaun();
+        if (!isValidUrl(serverAddress)) {
+            ModalHelper.showWarning(
+                project,
+                "Please enter a valid server address in the settings.",
+                "Invalid Server Address"
+            );
+            return;
+        }
+
         String targetUrl = serverAddress + "?sessionId=" + uuid;
         BrowserUtil.browse(targetUrl);
 
@@ -170,5 +181,14 @@ public class DynamicStatusBarWidget
     @Override
     public float getAlignment() {
         return 0;
+    }
+
+    private boolean isValidUrl(String url) {
+        try {
+            new URL(url).toURI();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

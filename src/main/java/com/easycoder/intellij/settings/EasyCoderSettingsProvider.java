@@ -1,6 +1,8 @@
 package com.easycoder.intellij.settings;
 
 import com.easycoder.intellij.enums.EasyCoderURI;
+import com.easycoder.intellij.enums.MessageId;
+import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
 import com.easycoder.intellij.widget.EasyCoderWidget;
 import com.google.gson.JsonObject;
@@ -62,19 +64,8 @@ public class EasyCoderSettingsProvider implements EditorOptionsProvider {
             WindowManager.getInstance().getStatusBar(openProject).updateWidget(EasyCoderWidget.ID);
         }
 
-        JsonObject jsonObject = new JsonObject();
-        if(EasyCoderSettings.getInstance().isCPURadioButtonEnabled()){
-            jsonObject.addProperty("sendUrl", EasyCoderSettings.getInstance().getServerAddressURL() + EasyCoderURI.CPU_CHAT.getUri());
-            jsonObject.addProperty("modelType", "CPU");
-        }else{
-            jsonObject.addProperty("sendUrl", EasyCoderSettings.getInstance().getServerAddressURL() + EasyCoderURI.GPU_CHAT.getUri());
-            jsonObject.addProperty("modelType", "GPU");
-        }
-        jsonObject.addProperty("maxToken", EasyCoderSettings.getInstance().getChatMaxToken().getDescription());
-        JsonObject result = new JsonObject();
-        result.addProperty("data", jsonObject.toString());
-        Project project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContextFromFocus().getResultSync());
-        (project.getService(EasyCoderSideWindowService.class)).notifyIdeAppInstance(result);
+        Project project = CommonDataKeys.PROJECT.getData(DataManager.getInstance().getDataContextFromFocus().getResultSync());        
+        (project.getService(EasyCoderSideWindowService.class)).notifyIdeAppInstance(savedSettings.getSettings());
     }
 
     @Override
