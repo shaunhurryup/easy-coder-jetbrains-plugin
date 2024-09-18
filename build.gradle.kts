@@ -18,7 +18,7 @@ dependencies {
 }
 
 intellij {
-    version.set("LATEST-EAP-SNAPSHOT")
+    version.set("2022.2.5")
     type.set("IC")
 }
 

@@ -114,17 +114,21 @@ public class EasyCoderWidget extends EditorBasedWidget
 
     @Override
     public void caretPositionChanged(@NotNull CaretEvent event) {
-        updateInlayHints(event.getEditor());
+        // updateInlayHints(event.getEditor());
+        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
+            .forEach(EasyCoderUtils::disposeInlayHints);
+        inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength())
+            .forEach(EasyCoderUtils::disposeInlayHints);
     }
 
     @Override
     public void caretAdded(@NotNull CaretEvent event) {
-        updateInlayHints(event.getEditor());
+        // updateInlayHints(event.getEditor());
     }
 
     @Override
     public void caretRemoved(@NotNull CaretEvent event) {
-        updateInlayHints(event.getEditor());
+        // updateInlayHints(event.getEditor());
     }
 
     @Override
@@ -209,8 +213,7 @@ public class EasyCoderWidget extends EditorBasedWidget
                 .forEach(EasyCoderUtils::disposeInlayHints);
 
         file.putUserData(EASY_CODER_POSITION, currentPosition);
-        // fixed: 删除也要有代码补全
-        // if(!enableSuggestion || currentPosition < lastPosition){
+
         if (!enableSuggestion) {
             enableSuggestion = false;
             return;
@@ -220,7 +223,12 @@ public class EasyCoderWidget extends EditorBasedWidget
         CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
         CompletableFuture<String[]> future = CompletableFuture
                 .supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition, getProject()));
-        future.thenAccept(hintList -> EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
+        future
+            .thenAccept(hintList -> {
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList);
+                });
+            });
     }
 
     @Override
@@ -249,5 +257,11 @@ public class EasyCoderWidget extends EditorBasedWidget
                 return null;
             }
         };
+    }
+
+    @Override
+    public void dispose() {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", this);
+        super.dispose();
     }
 }

@@ -13,8 +13,12 @@ import java.awt.*;
 public class CodeGenHintRenderer implements EditorCustomElementRenderer {
     private final String[] lines;
 
-    public CodeGenHintRenderer(String text) {
-        this.lines = text.split("\n");
+    public CodeGenHintRenderer(String line) {
+        this.lines = new String[] { line };
+    }
+
+    public CodeGenHintRenderer(String[] lines) {
+        this.lines = lines;
     }
 
     @Override

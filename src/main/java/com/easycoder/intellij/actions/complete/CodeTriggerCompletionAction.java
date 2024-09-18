@@ -121,7 +121,11 @@ public class CodeTriggerCompletionAction extends DumbAwareAction implements Inte
 		EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
 		CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
 		CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition, project));
-		future.thenAccept(hintList -> EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList));
+		future.thenAccept(hintList -> {
+			ApplicationManager.getApplication().invokeLater(() -> {
+				EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList);
+			});
+		});
 	}
 
 	@Override
