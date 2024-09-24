@@ -69,12 +69,16 @@ public class EasyCoderUtils {
                     return;
                 }
                 for (int j = 0; j < generatedTexts.length; j++) {
-                    String line = generatedTexts[j];
+                    String hint = generatedTexts[j];
+                    if (hint.trim().isEmpty()) {
+                        continue;
+                    }
+                    String[] split = hint.split("\n");
                     if (j == 0) {
-                        inlayModel.addInlineElement(suggestionPosition, true, new CodeGenHintRenderer(line));
+                        inlayModel.addInlineElement(suggestionPosition, true, new CodeGenHintRenderer(split));
                     } else {
                         inlayModel.addBlockElement(suggestionPosition, false, false, 0,
-                                new CodeGenHintRenderer(line));
+                                new CodeGenHintRenderer(split));
                     }
                 }
             }
