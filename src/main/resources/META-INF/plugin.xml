@@ -20,58 +20,60 @@ https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
          Guidelines:
     https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <description><![CDATA[
-### EasyCoder代码生成一体机描述  EasyCoder Code Generation Machine Description
+<h3>EasyCoder代码生成一体机描述  EasyCoder Code Generation Machine Description</h3>
 
-**概述：**  Overview:  
-EasyCoder代码生成一体机旨在通过先进的AI建模和强大的硬件支持来提升软件开发效率。  
-The EasyCoder Code Generation Machine is designed to enhance software development efficiency through advanced AI modeling and robust hardware support. 它帮助开发人员进行编码、优化和调试，最终改善项目成果。  
-It assists developers in coding, optimizing, and debugging, ultimately improving project outcomes.
+<strong>概述：</strong>  <strong>Overview:</strong>
+<p>EasyCoder代码生成一体机旨在通过先进的AI建模和强大的硬件支持来提升软件开发效率。
+The EasyCoder Code Generation Machine is designed to enhance software development efficiency through advanced AI modeling and robust hardware support. 它帮助开发人员进行编码、优化和调试，最终改善项目成果。
+It assists developers in coding, optimizing, and debugging, ultimately improving project outcomes.</p>
 
-**目标受众：**  Target Audience:  
-本手册面向所有EasyCoder代码生成一体机的用户，包括软件开发人员、系统管理员以及对编程工具感兴趣的个人开发者。  
-This manual is intended for all users of the EasyCoder Code Generation Machine, including software developers, system administrators, and individual developers interested in programming tools.
+<strong>目标受众：</strong>  <strong>Target Audience:</strong>
+<p>本手册面向所有EasyCoder代码生成一体机的用户，包括软件开发人员、系统管理员以及对编程工具感兴趣的个人开发者。
+This manual is intended for all users of the EasyCoder Code Generation Machine, including software developers, system administrators, and individual developers interested in programming tools.</p>
 
-**主要特点：**  Key Features:  
-- **高精度模型：**  High-Precision Models: 支持超过100种编程语言和IDE插件，平均代码接受率超过30%。  
-Supports over 100 programming languages and IDE plugins, with an average code acceptance rate exceeding 30%.  
-- **国产化配置：**  Domestic Configuration: 完全本土化设计，配备国产CPU和AI加速卡，确保数据安全和合规性。  
-Fully localized design with domestic CPUs and AI acceleration cards, ensuring data security and compliance.  
-- **紧密集成开发流程：**  Integrated Development Process: 提供代码翻译、知识库、数据库分析和Git管理等功能，以满足特定业务需求。  
-Features like code translation, knowledge bases, database analysis, and Git management to meet specific business needs.  
-- **动态模型切换：**  Dynamic Model Switching: 统一接口支持切换内置和外部模型。  
-Unified interface for switching between built-in and external models.  
-- **企业管理后台：**  Enterprise Management: 提供管理后台以监控使用情况和优化资源分配。  
-A management backend for monitoring usage and optimizing resource allocation.
+<strong>主要特点：</strong>  <strong>Key Features:</strong>
+<ul>
+    <li><strong>高精度模型：</strong>  <strong>High-Precision Models:</strong> 支持超过100种编程语言和IDE插件，平均代码接受率超过30%。
+    Supports over 100 programming languages and IDE plugins, with an average code acceptance rate exceeding 30%.</li>
+    <li><strong>国产化配置：</strong>  <strong>Domestic Configuration:</strong> 完全本土化设计，配备国产CPU和AI加速卡，确保数据安全和合规性。
+    Fully localized design with domestic CPUs and AI acceleration cards, ensuring data security and compliance.</li>
+    <li><strong>紧密集成开发流程：</strong>  <strong>Integrated Development Process:</strong> 提供代码翻译、知识库、数据库分析和Git管理等功能，以满足特定业务需求。
+    Features like code translation, knowledge bases, database analysis, and Git management to meet specific business needs.</li>
+    <li><strong>动态模型切换：</strong>  <strong>Dynamic Model Switching:</strong> 统一接口支持切换内置和外部模型。
+    Unified interface for switching between built-in and external models.</li>
+    <li><strong>企业管理后台：</strong>  <strong>Enterprise Management:</strong> 提供管理后台以监控使用情况和优化资源分配。
+    A management backend for monitoring usage and optimizing resource allocation.</li>
+</ul>
 
-**安装与配置：**  Installation and Configuration:  
-手册提供详细的硬件安装步骤，包括开箱、组装和初始化设置，确保顺利的安装过程。  
-The manual provides detailed steps for hardware installation, including unboxing, assembly, and initialization settings, ensuring a smooth setup process.
+<strong>安装与配置：</strong>  <strong>Installation and Configuration:</strong>
+<p>手册提供详细的硬件安装步骤，包括开箱、组装和初始化设置，确保顺利的安装过程。
+The manual provides detailed steps for hardware installation, including unboxing, assembly, and initialization settings, ensuring a smooth setup process.</p>
 
-**软件配置与使用：**  Software Configuration and Usage:  
-包括配置用户管理系统和使用EasyCoder平台与流行IDE（如VSCode和JetBrains）的指南。  
-Guidelines for configuring the user management system and using the EasyCoder platform with popular IDEs like VSCode and JetBrains are included.
+<strong>软件配置与使用：</strong>  <strong>Software Configuration and Usage:</strong>
+<p>包括配置用户管理系统和使用EasyCoder平台与流行IDE（如VSCode和JetBrains）的指南。
+Guidelines for configuring the user management system and using the EasyCoder platform with popular IDEs like VSCode and JetBrains are included.</p>
 
-**功能：**  Functionality:  
-EasyCoder提供代码续写、注释生成、智能问答、代码翻译、单元测试生成和函数重构等功能，以简化开发过程。  
-The EasyCoder offers features such as code completion, comment generation, intelligent Q&A, code translation, unit test generation, and function refactoring to streamline the development process.
+<strong>功能：</strong>  <strong>Functionality:</strong>
+<p>EasyCoder提供代码续写、注释生成、智能问答、代码翻译、单元测试生成和函数重构等功能，以简化开发过程。
+The EasyCoder offers features such as code completion, comment generation, intelligent Q&A, code translation, unit test generation, and function refactoring to streamline the development process.</p>
 
-**维护与升级：**  Maintenance and Upgrades:  
-建议定期进行硬件检查、软件更新和数据备份，以保持最佳性能。  
-Regular hardware checks, software updates, and data backups are recommended to maintain optimal performance.  
-鼓励用户关注新功能和插件的发布。  
-Users are encouraged to stay informed about new features and plugins.
+<strong>维护与升级：</strong>  <strong>Maintenance and Upgrades:</strong>
+<p>建议定期进行硬件检查、软件更新和数据备份，以保持最佳性能。
+Regular hardware checks, software updates, and data backups are recommended to maintain optimal performance.
+鼓励用户关注新功能和插件的发布。
+Users are encouraged to stay informed about new features and plugins.</p>
 
-**安全与合规：**  Security and Compliance:  
-手册强调物理和网络安全、数据加密的重要性，以及遵守法律法规和知识产权的要求。  
-The manual emphasizes the importance of physical and network security, data encryption, and adherence to legal regulations and intellectual property rights.
+<strong>安全与合规：</strong>  <strong>Security and Compliance:</strong>
+<p>手册强调物理和网络安全、数据加密的重要性，以及遵守法律法规和知识产权的要求。
+The manual emphasizes the importance of physical and network security, data encryption, and adherence to legal regulations and intellectual property rights.</p>
 
-**联系我们：**  Contact US:  
-感谢您选择EasyCoder代码生成一体机。  
-Thank you for choosing the EasyCoder Code Generation Machine.  
-本手册旨在提升您对产品的理解和使用，改善您的开发效率和项目质量。  
-This manual aims to enhance your understanding and usage of the product, improving your development efficiency and project quality.  
-如有任何问题或反馈，请通过我们的支持渠道与我们联系。  
-For any questions or feedback, please reach out through our support channels.
+<strong>联系我们：</strong>  <strong>Contact US:</strong>
+<p>感谢您选择EasyCoder代码生成一体机。
+Thank you for choosing the EasyCoder Code Generation Machine.
+本手册旨在提升您对产品的理解和使用，改善您的开发效率和项目质量。
+This manual aims to enhance your understanding and usage of the product, improving your development efficiency and project quality.
+如有任何问题或反馈，请通过我们的支持渠道与我们联系。
+For any questions or feedback, please reach out through our support channels.</p>
   ]]></description>
 
     <!-- Product and plugin compatibility requirements.
