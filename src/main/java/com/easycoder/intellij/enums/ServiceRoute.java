@@ -11,6 +11,7 @@ public enum ServiceRoute {
     REACT_ON_QA_RESPONSE("/api/easycoder-api/app/record/like"), // 技术问答 - 对 GPT 的回答点赞/点踩
     CODE_COMPLETION("/api/easycoder-api/app/session/completions"),
     CODE_TRANSLATION("/api/easycoder-api/app/session/translation"),
+    ACCEPT_INLINE_COMPLETION("/api/easycoder-api/app/record/accept/"),
     // 知识库
     GET_KNOWLEDGE_REPO_LIST("/api/easycoder-api/app/knowledgeRepository/list"),
     GET_KNOWLEDGE_SESSION_LIST("/api/easycoder-api/app/knowledgeSession/list"),

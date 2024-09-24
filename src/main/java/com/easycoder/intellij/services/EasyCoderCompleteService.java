@@ -15,8 +15,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import com.easycoder.intellij.constant.Const;
-import com.easycoder.intellij.handlers.GlobalStore;
 import com.easycoder.intellij.http.HttpToolkits;
+import com.easycoder.intellij.model.CompletionResult;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderUtils;
 import com.easycoder.intellij.widget.DynamicStatusBarWidget;
@@ -34,7 +34,7 @@ public class EasyCoderCompleteService {
         codeCompletionProcess = new CodeCompletionProcess();
     }
 
-    public String[] getCodeCompletionHints(CharSequence editorContents, int cursorPosition, Project project) {
+    public CompletionResult getCodeCompletionHints(CharSequence editorContents, int cursorPosition, Project project) {
         DynamicStatusBarWidget widget = (DynamicStatusBarWidget) WindowManager.getInstance()
                 .getStatusBar(project)
                 .getWidget("DynamicStatusBarWidget");
@@ -46,21 +46,28 @@ public class EasyCoderCompleteService {
         String suffix = contents.substring(cursorPosition,
                 EasyCoderUtils.suffixHandle(cursorPosition, editorContents.length()));
 
-        String generatedText = buildApiPostForBackend(settings, prefix, suffix, widget);
+        CompletionResult result = buildApiPostForBackend(settings, prefix, suffix, widget);
+
         // only return empty array when generatedText is empty
         // null means some error occurred
-        if (generatedText == null) {
-            return new String[] { "" };
+        if (result == null) {
+            return CompletionResult.builder()
+                    .generatedText("")
+                    .recordId(null)
+                    .build();
         }
-        if ("".equals(generatedText)) {
+        if (result.getGeneratedText().isEmpty()) {
             codeCompletionProcess.noSuggestion();
             widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
-            return new String[] {};
+            return CompletionResult.builder()
+                    .generatedText("")
+                    .recordId(null)
+                    .build();
         }
-        return new String[] { generatedText };
+        return result;
     }
 
-    private String buildApiPostForBackend(
+    private CompletionResult buildApiPostForBackend(
             EasyCoderSettings settings,
             String prefix,
             String suffix,
@@ -96,7 +103,7 @@ public class EasyCoderCompleteService {
                 .build();
         httpPost.setConfig(requestConfig);
 
-        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<CompletionResult> future = CompletableFuture.supplyAsync(() -> {
             try {
                 CloseableHttpClient httpClient = HttpClients.createDefault();
 
@@ -110,22 +117,34 @@ public class EasyCoderCompleteService {
                 JsonObject data = jsonResponse.getAsJsonObject("data");
                 if (data.get("code").getAsInt() != 200) {
                     System.out.println("Fetching ghost text error: " + data.get("message").getAsString());
-                    return "";
+                    return CompletionResult.builder()
+                            .generatedText("")
+                            .recordId(null)
+                            .build();
                 }
-                return data.get("content").getAsString();
+                return CompletionResult.builder()
+                    .generatedText(data.get("content").getAsString())
+                    .recordId(data.get("recordId").getAsString())
+                    .build();
             } catch (Exception e) {
                 System.out.println("Fetching ghost text error: " + e.getMessage());
-                return "";
+                return CompletionResult.builder()
+                        .generatedText("")
+                        .recordId(null)
+                        .build();
             }
         }).orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
                 .exceptionally(e -> {
                     System.out.println("Fetching ghost text timeout: " + e.getMessage());
-                    return "";
+                    return CompletionResult.builder()
+                            .generatedText("")
+                            .recordId(null)
+                            .build();
                 });
 
         try {
-            String result = future.get();
-            if (StringUtils.isBlank(result)) {
+            CompletionResult result = future.get();
+            if (StringUtils.isBlank(result.getGeneratedText())) {
                 codeCompletionProcess.noSuggestion();
                 widget.updateWidget(codeCompletionProcess.getText(), codeCompletionProcess.getTooltip());
             } else {

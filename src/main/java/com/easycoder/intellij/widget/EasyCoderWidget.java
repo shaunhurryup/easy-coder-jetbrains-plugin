@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.easycoder.intellij.model.CompletionResult;
 import com.easycoder.intellij.services.EasyCoderCompleteService;
 import com.easycoder.intellij.utils.CodeGenHintRenderer;
 import com.easycoder.intellij.utils.EasyCoderUtils;
@@ -155,37 +156,37 @@ public class EasyCoderWidget extends EditorBasedWidget
             return;
 
         InlayModel inlayModel = focusedEditor.getInlayModel();
-        if (currentPosition > lastPosition) {
-            String[] existingHints = file.getUserData(EASY_CODER_CODE_SUGGESTION);
-            if (Objects.nonNull(existingHints) && existingHints.length > 0) {
-                String inlineHint = existingHints[0];
-                String modifiedText = focusedEditor.getDocument().getCharsSequence()
-                        .subSequence(lastPosition, currentPosition).toString();
-                if (modifiedText.startsWith("\n")) {
-                    modifiedText = modifiedText.replace(" ", "");
-                }
-                if (inlineHint.startsWith(modifiedText)) {
-                    inlineHint = inlineHint.substring(modifiedText.length());
-                    enableSuggestion = false;
-                    if (inlineHint.length() > 0) {
-                        inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
-                                .forEach(EasyCoderUtils::disposeInlayHints);
-                        inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
-                        existingHints[0] = inlineHint;
+        // if (currentPosition > lastPosition) {
+        //     String[] existingHints = file.getUserData(EASY_CODER_CODE_SUGGESTION);
+        //     if (Objects.nonNull(existingHints) && existingHints.length > 0) {
+        //         String inlineHint = existingHints[0];
+        //         String modifiedText = focusedEditor.getDocument().getCharsSequence()
+        //                 .subSequence(lastPosition, currentPosition).toString();
+        //         if (modifiedText.startsWith("\n")) {
+        //             modifiedText = modifiedText.replace(" ", "");
+        //         }
+        //         if (inlineHint.startsWith(modifiedText)) {
+        //             inlineHint = inlineHint.substring(modifiedText.length());
+        //             enableSuggestion = false;
+        //             if (inlineHint.length() > 0) {
+        //                 inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
+        //                         .forEach(EasyCoderUtils::disposeInlayHints);
+        //                 inlayModel.addInlineElement(currentPosition, true, new CodeGenHintRenderer(inlineHint));
+        //                 existingHints[0] = inlineHint;
 
-                        file.putUserData(EASY_CODER_CODE_SUGGESTION, existingHints);
-                        file.putUserData(EASY_CODER_POSITION, currentPosition);
-                        return;
-                    } else if (existingHints.length > 1) {
-                        existingHints = Arrays.copyOfRange(existingHints, 1, existingHints.length);
-                        EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, existingHints);
-                        return;
-                    } else {
-                        file.putUserData(EASY_CODER_CODE_SUGGESTION, null);
-                    }
-                }
-            }
-        }
+        //                 file.putUserData(EASY_CODER_CODE_SUGGESTION, existingHints);
+        //                 file.putUserData(EASY_CODER_POSITION, currentPosition);
+        //                 return;
+        //             } else if (existingHints.length > 1) {
+        //                 existingHints = Arrays.copyOfRange(existingHints, 1, existingHints.length);
+        //                 EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, new CompletionResult[] { CompletionResult.builder().generatedText(inlineHint).build() });
+        //                 return;
+        //             } else {
+        //                 file.putUserData(EASY_CODER_CODE_SUGGESTION, null);
+        //             }
+        //         }
+        //     }
+        // }
 
         inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
                 .forEach(EasyCoderUtils::disposeInlayHints);
@@ -201,12 +202,12 @@ public class EasyCoderWidget extends EditorBasedWidget
         EasyCoderCompleteService easyCoder = ApplicationManager.getApplication()
                 .getService(EasyCoderCompleteService.class);
         CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
-        CompletableFuture<String[]> future = CompletableFuture
+        CompletableFuture<CompletionResult> future = CompletableFuture
                 .supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition, getProject()));
         future
                 .thenAccept(hintList -> {
                     ApplicationManager.getApplication().invokeLater(() -> {
-                        EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList);
+                        EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, new CompletionResult[] { hintList });
                     });
                 });
     }

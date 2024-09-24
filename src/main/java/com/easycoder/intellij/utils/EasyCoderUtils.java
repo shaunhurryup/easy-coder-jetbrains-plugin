@@ -1,8 +1,11 @@
 package com.easycoder.intellij.utils;
 
-import java.util.Objects;
-
+import com.easycoder.intellij.enums.ServiceRoute;
+import com.easycoder.intellij.http.HttpToolkits; // Add this import
+import com.easycoder.intellij.model.CompletionResult;
+import com.easycoder.intellij.model.WebviewMessage; // Add this import
 import com.easycoder.intellij.widget.EasyCoderWidget;
+import com.google.gson.JsonObject; // Add this import
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -48,37 +51,47 @@ public class EasyCoderUtils {
         return version;
     }
 
-    public static void addCodeSuggestion(Editor focusedEditor, VirtualFile file, int suggestionPosition,
-            String[] hintList) {
+    public static void addCodeSuggestion(Editor focusedEditor, VirtualFile file, int suggestionPosition, CompletionResult[] completionResult) {
         ApplicationManager.getApplication().invokeLater(() -> {
             if (suggestionPosition == file.getUserData(EasyCoderWidget.EASY_CODER_POSITION)) {
-                file.putUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION, hintList);
+                String[] generatedTexts = new String[completionResult.length];
+                for (int i = 0; i < completionResult.length; i++) {
+                    generatedTexts[i] = completionResult[i].getGeneratedText();
+                }
+                file.putUserData(EasyCoderWidget.EASY_CODER_CODE_SUGGESTION, generatedTexts);
 
                 InlayModel inlayModel = focusedEditor.getInlayModel();
                 inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength())
                         .forEach(EasyCoderUtils::disposeInlayHints);
                 inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength())
                         .forEach(EasyCoderUtils::disposeInlayHints);
-                if (Objects.isNull(hintList) || hintList.length == 0) {
+                if (generatedTexts.length == 0) {
                     return;
                 }
-                for (int i = 0; i < hintList.length; i++) {
-                    String hint = hintList[i];
-                    if (hint.trim().isEmpty()) {
-                        continue;
-                    }
-                    String[] split = hint.split("\n");
-                    for (int j = 0; j < split.length; j++) {
-                        String line = split[j];
-                        if (j == 0) {
-                            inlayModel.addInlineElement(suggestionPosition, true, new CodeGenHintRenderer(line));
-                        } else {
-                            inlayModel.addBlockElement(suggestionPosition, false, false, 0,
-                                    new CodeGenHintRenderer(line));
-                        }
+                for (int j = 0; j < generatedTexts.length; j++) {
+                    String line = generatedTexts[j];
+                    if (j == 0) {
+                        inlayModel.addInlineElement(suggestionPosition, true, new CodeGenHintRenderer(line));
+                    } else {
+                        inlayModel.addBlockElement(suggestionPosition, false, false, 0,
+                                new CodeGenHintRenderer(line));
                     }
                 }
             }
+        });
+
+        // Add tracking event in a separate invokeLater block
+        ApplicationManager.getApplication().invokeLater(() -> {
+            String recordId = completionResult[0].getRecordId();
+            if (recordId == null) {
+                return;
+            }
+            JsonObject payload = new JsonObject();
+            payload.addProperty("route", ServiceRoute.ACCEPT_INLINE_COMPLETION.getRoute() + completionResult[0].getRecordId());
+            WebviewMessage trackingMessage = WebviewMessage.builder()
+                    .payload(payload)
+                    .build();
+            HttpToolkits.doHttpGet(trackingMessage);
         });
     }
 

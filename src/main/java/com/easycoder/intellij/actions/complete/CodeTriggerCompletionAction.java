@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import com.easycoder.intellij.model.CompletionResult;
 import com.easycoder.intellij.services.EasyCoderCompleteService;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.easycoder.intellij.utils.EasyCoderUtils;
@@ -111,21 +112,22 @@ public class CodeTriggerCompletionAction extends DumbAwareAction implements Inte
 			return;
 		}
 
-		Integer easyCoderPos = file.getUserData(EasyCoderWidget.EASY_CODER_POSITION);
 		int currentPosition = focusedEditor.getCaretModel().getOffset();
 
 		InlayModel inlayModel = focusedEditor.getInlayModel();
 		inlayModel.getInlineElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
 		inlayModel.getBlockElementsInRange(0, focusedEditor.getDocument().getTextLength()).forEach(EasyCoderUtils::disposeInlayHints);
 		file.putUserData(EasyCoderWidget.EASY_CODER_POSITION, currentPosition);
+
 		EasyCoderCompleteService easyCoder = ApplicationManager.getApplication().getService(EasyCoderCompleteService.class);
 		CharSequence editorContents = focusedEditor.getDocument().getCharsSequence();
-		CompletableFuture<String[]> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition, project));
-		future.thenAccept(hintList -> {
+		CompletableFuture<CompletionResult> future = CompletableFuture.supplyAsync(() -> easyCoder.getCodeCompletionHints(editorContents, currentPosition, project));
+		future.thenAccept(result -> {
 			ApplicationManager.getApplication().invokeLater(() -> {
-				EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, hintList);
+				EasyCoderUtils.addCodeSuggestion(focusedEditor, file, currentPosition, new CompletionResult[] { result });
 			});
 		});
+
 	}
 
 	@Override
