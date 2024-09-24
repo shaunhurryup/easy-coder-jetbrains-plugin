@@ -157,8 +157,9 @@ public class HttpToolkits {
 
     try {
       HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-      System.out.println("[EasyCoder] -- HttpUtil.doHttpGet -- response: " + response.body());
-      return response.body();
+      String body = response.body();
+      System.out.println("[EasyCoder] -- HttpUtil.doHttpGet -- response: " + body);
+      return body;
     } catch (IOException | InterruptedException e) {
       System.err.println("[Request Failed] -- " + e.getMessage());
       return null;

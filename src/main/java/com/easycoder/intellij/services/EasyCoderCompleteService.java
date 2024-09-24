@@ -114,8 +114,9 @@ public class EasyCoderCompleteService {
                 httpClient.close();
 
                 JsonObject jsonResponse = JsonParser.parseString(responseBody).getAsJsonObject();
+                int code = jsonResponse.get("code").getAsInt();
                 JsonObject data = jsonResponse.getAsJsonObject("data");
-                if (data.get("code").getAsInt() != 200) {
+                if (code != 200) {
                     System.out.println("Fetching ghost text error: " + data.get("message").getAsString());
                     return CompletionResult.builder()
                             .generatedText("")
