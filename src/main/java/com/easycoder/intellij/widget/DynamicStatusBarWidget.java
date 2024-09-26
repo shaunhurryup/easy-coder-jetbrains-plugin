@@ -125,23 +125,14 @@ public class DynamicStatusBarWidget
     private void showPopupAboveStatusBar(JBPopup popup, MouseEvent mouseEvent) {
         StatusBar statusBar = WindowManager.getInstance().getStatusBar(project);
         if (statusBar != null) {
-            JComponent widgetComponent = ((IdeStatusBarImpl) statusBar).getWidgetComponent(ID());
-
-            Point widgetOnScreen = widgetComponent.getLocationOnScreen();
+            Component sourceComponent = mouseEvent.getComponent();
+            Point locationOnScreen = sourceComponent.getLocationOnScreen();
             Dimension popupSize = popup.getContent().getPreferredSize();
 
-            Component statusBarComponent = statusBar.getComponent();
-            Point statusBarLocation = statusBarComponent.getLocationOnScreen();
+            int x = locationOnScreen.x;
+            int y = locationOnScreen.y - popupSize.height;
 
-            // 计算相对于状态栏的x坐标
-            int relativeX = widgetOnScreen.x - statusBarLocation.x;
-            int relativeY = widgetOnScreen.y - statusBarLocation.y - popupSize.height;
-
-            // 确保 Popup 不超出屏幕边界
-            // 这里可以根据需要添加边界检查
-
-            // 设置 Popup 的位置，使其左侧与按钮左侧对齐
-            popup.show(new RelativePoint(statusBarComponent, new Point(relativeX, relativeY)));
+            popup.show(new RelativePoint(new Point(x, y)));
         }
     }
 
