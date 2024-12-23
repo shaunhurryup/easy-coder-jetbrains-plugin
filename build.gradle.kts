@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.easycoder.intellij"
-version = "0.0.9"
+version = "0.0.12"
 
 repositories {
     mavenCentral()
@@ -20,6 +20,8 @@ dependencies {
 intellij {
     // 不要改！让插件永远支持最新版本
     version.set("LATEST-EAP-SNAPSHOT")
+    // 开发可以用老版本
+//    version.set("2022.2.5")
     type.set("IC")
 }
 
