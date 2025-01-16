@@ -25,6 +25,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.SelectionModel;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.ide.CopyPasteManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 
 import cn.hutool.core.util.ObjectUtil;
@@ -34,6 +35,12 @@ public class WebviewMessageHandler {
 
     public static WebviewMessage run(WebviewMessage message, Project project) {
         MessageId messageId = message.getId();
+        if (messageId.equals(MessageId.OpenExtensionSettings)) {
+            // Open settings for the EasyCoder plugin
+            ApplicationManager.getApplication().invokeLater(() -> {
+                ShowSettingsUtil.getInstance().showSettingsDialog(project, "EasyCoder");
+            });
+        }
         if (messageId.equals(MessageId.ShowWarnModal)) {
             String value = message.getPayload().get("value").getAsString();
             ModalHelper.showWarning(project, value, "WARNING");

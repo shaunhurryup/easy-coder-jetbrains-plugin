@@ -7,6 +7,8 @@ public enum MessageId {
     // 技术问答相关
     ReactOnQaResponse, // 对 GPT 的回答点赞/点踩
     WebviewQuestion, // 从 webview 输入框提出问题
+    WebviewQuestionFile, // 从 webview 输入框提出问题，支持JSON Schema
+    WebviewQuestionWeb, // 从 webview 输入框提出问题，支持JSON Schema
     WebviewCommandQuestion, // 从 webview 输入框的选项提出问题
     WebviewInitQaExamples, // 初始化技术问答示例问题
     WebviewAbortQa, // 中断技术问答
@@ -17,6 +19,15 @@ public enum MessageId {
     KnowledgeReactOnQaResponse, // 对 GPT 的回答点赞/点踩
     KnowledgeWebviewQuestion, // 从 webview 输入框提出问题
     KnowledgeWebviewAbortQa, // 中断技术问答
+    // 知识库维护相关功能
+    CreateKnowledgeRepository, // 知识库创建
+    EditKnowledgeRepository, // 知识库编辑
+    RemoveKnowledgeRepository, // 删除知识库
+    KnowledgeRepositoryDetail, // 知识库配置详情
+    // 知识库配置
+    UploadFilePreSign, // 知识库上传文件的签名
+    GetKnowledgeRepositorySegment, // 获取知识库分段信息
+    SaveKnowledgeRepositorySegment, // 保存知识库配置
 
     // 代码相关功能
     WebviewCodeTranslation, // 代码翻译
@@ -67,5 +78,13 @@ public enum MessageId {
     GetExtensionSettings, // 获取插件配置
     ToggleColorTheme, // 切换颜色主题
     CopyToClipboard, // 复制到剪贴板
-    OpenExternalLink // 打开外部链接
+    OpenExternalLink, // 打开外部链接
+
+    // 新增的枚举值
+    OpenPanel, // panel
+    CreateNewFile, // 新文件创建
+    ShowDiff, // 显示差异
+    SyncFileTree, // 同步文件树
+    OpenExtensionSettings, // 打开扩展设置
+    GenerateGitCommitMessage // 生成 Git 提交消息
 }
