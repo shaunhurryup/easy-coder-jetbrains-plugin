@@ -94,6 +94,8 @@ For any questions or feedback, please reach out through our support channels.</p
             implementation="com.easycoder.intellij.widget.EasyCoderWidgetFactory"/>
         <statusBarWidgetFactory id="DynamicStatusBarWidgetFactory" implementation="com.easycoder.intellij.widget.DynamicStatusBarWidgetFactory"/>
         
+        <projectService serviceImplementation="com.easycoder.intellij.services.FileTreeService"/>
+        
         <editorActionHandler action="EditorTab"
             implementationClass="com.easycoder.intellij.actions.complete.CodeGenTabAction" />
         <editorActionHandler action="EditorEscape"

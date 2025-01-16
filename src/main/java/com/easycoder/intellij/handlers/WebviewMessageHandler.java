@@ -13,6 +13,7 @@ import com.easycoder.intellij.model.WebviewMessage;
 import com.easycoder.intellij.notification.ModalHelper;
 import com.easycoder.intellij.notification.NotificationHelper;
 import com.easycoder.intellij.services.EasyCoderSideWindowService;
+import com.easycoder.intellij.services.FileTreeService;
 import com.easycoder.intellij.settings.EasyCoderSettings;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -189,6 +190,9 @@ public class WebviewMessageHandler {
             // language
             project.getService(EasyCoderSideWindowService.class)
                 .notifyIdeAppInstance(EasyCoderSettings.getInstance().getSettings());
+
+            // Initialize file tree
+            project.getService(FileTreeService.class);
 
             String token = PropertiesComponent.getInstance().getValue("easycoder:token");
             String username = PropertiesComponent.getInstance().getValue("easycoder:username");
